@@ -1,4 +1,3 @@
-
 export interface Property {
   id: string;
   title: string;
@@ -89,4 +88,56 @@ export interface FilterOptions {
     lat: number;
     lng: number;
   };
+}
+
+export interface Developer {
+  id: string;
+  name: string;
+  description: string;
+  logo?: string;
+  contactPerson: string;
+  email: string;
+  phone: string;
+  address: string;
+  website?: string;
+  establishedYear: number;
+  totalProjects: number;
+  commissionRate: number; // percentage (e.g., 2.5 for 2.5%)
+  status: 'active' | 'inactive';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PropertySale {
+  id: string;
+  propertyId: string;
+  propertyTitle: string;
+  developerId: string;
+  developerName: string;
+  salePrice: number;
+  commissionRate: number;
+  commissionAmount: number;
+  customerName: string;
+  customerEmail: string;
+  saleDate: string;
+  paymentStatus: 'pending' | 'paid' | 'cancelled';
+  notes?: string;
+  createdAt: string;
+}
+
+export interface MonthlyReport {
+  id: string;
+  month: number;
+  year: number;
+  totalSales: number;
+  totalCommission: number;
+  totalProperties: number;
+  salesByDeveloper: {
+    developerId: string;
+    developerName: string;
+    salesCount: number;
+    totalSalesAmount: number;
+    commissionAmount: number;
+  }[];
+  createdAt: string;
 }

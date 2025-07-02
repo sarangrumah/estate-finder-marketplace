@@ -12,9 +12,9 @@ interface PropertyCardProps {
 
 const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('id-ID', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'IDR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(price);
@@ -70,15 +70,15 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
         <div className="flex items-center justify-between mb-4 text-sm text-gray-600">
           <div className="flex items-center">
             <Home className="h-4 w-4 mr-1" />
-            <span>{property.bedrooms} bed</span>
+            <span>{property.bedrooms} kamar</span>
           </div>
           <div className="flex items-center">
             <Bath className="h-4 w-4 mr-1" />
-            <span>{property.bathrooms} bath</span>
+            <span>{property.bathrooms} mandi</span>
           </div>
           <div className="flex items-center">
             <Maximize className="h-4 w-4 mr-1" />
-            <span>{property.area.toLocaleString()} sqft</span>
+            <span>{property.area.toLocaleString()} m²</span>
           </div>
         </div>
 
@@ -106,11 +106,13 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
         {/* Actions */}
         <div className="flex gap-2">
           <Link to={`/property/${property.id}`} className="flex-1">
-            <Button className="w-full">View Details</Button>
+            <Button className="w-full">Lihat Detail</Button>
           </Link>
-          <Button variant="outline" size="sm">
-            Contact
-          </Button>
+          <Link to={`/contact?property=${encodeURIComponent(property.title)}&id=${property.id}`}>
+            <Button variant="outline" size="sm">
+              Kontak
+            </Button>
+          </Link>
         </div>
       </div>
     </div>

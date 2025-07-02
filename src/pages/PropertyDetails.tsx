@@ -26,9 +26,9 @@ const PropertyDetails = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Property Not Found</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Properti Tidak Ditemukan</h1>
           <Link to="/" className="text-blue-600 hover:text-blue-700">
-            Return to Properties
+            Kembali ke Properti
           </Link>
         </div>
       </div>
@@ -36,9 +36,9 @@ const PropertyDetails = () => {
   }
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('id-ID', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'IDR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(price);
@@ -47,8 +47,8 @@ const PropertyDetails = () => {
   const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     toast({
-      title: "Inquiry Sent!",
-      description: "We'll contact you within 24 hours.",
+      title: "Pertanyaan Terkirim!",
+      description: "Kami akan menghubungi Anda dalam 24 jam.",
     });
     setContactForm({ name: '', email: '', phone: '', message: '' });
   };
@@ -60,7 +60,7 @@ const PropertyDetails = () => {
         <div className="mb-6">
           <Link to="/" className="inline-flex items-center text-blue-600 hover:text-blue-700">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Properties
+            Kembali ke Properti
           </Link>
         </div>
 
@@ -131,22 +131,22 @@ const PropertyDetails = () => {
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
                     <Home className="h-6 w-6 mx-auto mb-2 text-gray-600" />
                     <div className="font-semibold">{property.bedrooms}</div>
-                    <div className="text-sm text-gray-600">Bedrooms</div>
+                    <div className="text-sm text-gray-600">Kamar Tidur</div>
                   </div>
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
                     <Bath className="h-6 w-6 mx-auto mb-2 text-gray-600" />
                     <div className="font-semibold">{property.bathrooms}</div>
-                    <div className="text-sm text-gray-600">Bathrooms</div>
+                    <div className="text-sm text-gray-600">Kamar Mandi</div>
                   </div>
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
                     <Maximize className="h-6 w-6 mx-auto mb-2 text-gray-600" />
                     <div className="font-semibold">{property.area.toLocaleString()}</div>
-                    <div className="text-sm text-gray-600">Sq Ft</div>
+                    <div className="text-sm text-gray-600">M²</div>
                   </div>
                 </div>
 
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold mb-3">Description</h3>
+                  <h3 className="text-lg font-semibold mb-3">Deskripsi</h3>
                   <p className="text-gray-600 leading-relaxed">{property.description}</p>
                 </div>
 
@@ -156,13 +156,13 @@ const PropertyDetails = () => {
                     <User className="h-8 w-8 text-gray-400 mr-3" />
                     <div>
                       <div className="font-semibold">{property.developer}</div>
-                      <div className="text-sm text-gray-600">Trusted Developer</div>
+                      <div className="text-sm text-gray-600">Developer Terpercaya</div>
                     </div>
                   </div>
                 </div>
 
                 <div className="mb-6">
-                  <h3 className="text-lg font-semibold mb-3">Features & Amenities</h3>
+                  <h3 className="text-lg font-semibold mb-3">Fitur & Fasilitas</h3>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                     {property.features.map((feature, index) => (
                       <Badge key={index} variant="secondary">
@@ -174,7 +174,7 @@ const PropertyDetails = () => {
 
                 <div className="flex items-center text-sm text-gray-500">
                   <Calendar className="h-4 w-4 mr-1" />
-                  <span>Listed on {new Date(property.createdAt).toLocaleDateString()}</span>
+                  <span>Terdaftar pada {new Date(property.createdAt).toLocaleDateString('id-ID')}</span>
                 </div>
               </CardContent>
             </Card>
@@ -187,13 +187,13 @@ const PropertyDetails = () => {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Phone className="h-5 w-5 mr-2" />
-                  Interested in this property?
+                  Tertarik dengan properti ini?
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleContactSubmit} className="space-y-4">
                   <div>
-                    <Label htmlFor="name">Full Name</Label>
+                    <Label htmlFor="name">Nama Lengkap</Label>
                     <Input
                       id="name"
                       value={contactForm.name}
@@ -212,7 +212,7 @@ const PropertyDetails = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="phone">Phone</Label>
+                    <Label htmlFor="phone">Telepon</Label>
                     <Input
                       id="phone"
                       type="tel"
@@ -222,10 +222,10 @@ const PropertyDetails = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="message">Message</Label>
+                    <Label htmlFor="message">Pesan</Label>
                     <Textarea
                       id="message"
-                      placeholder="I'm interested in this property. Please contact me with more details."
+                      placeholder="Saya tertarik dengan properti ini. Mohon hubungi saya untuk informasi lebih detail."
                       value={contactForm.message}
                       onChange={(e) => setContactForm({...contactForm, message: e.target.value})}
                       rows={4}
@@ -233,21 +233,21 @@ const PropertyDetails = () => {
                   </div>
                   <Button type="submit" className="w-full">
                     <Mail className="h-4 w-4 mr-2" />
-                    Send Inquiry
+                    Kirim Pertanyaan
                   </Button>
                 </form>
 
                 <div className="mt-6 pt-6 border-t">
-                  <h4 className="font-semibold mb-3">Quick Actions</h4>
+                  <h4 className="font-semibold mb-3">Aksi Cepat</h4>
                   <div className="space-y-2">
                     <Button variant="outline" className="w-full">
-                      Schedule Viewing
+                      Jadwalkan Viewing
                     </Button>
                     <Button variant="outline" className="w-full">
-                      Request Virtual Tour
+                      Minta Tur Virtual
                     </Button>
                     <Button variant="outline" className="w-full">
-                      Download Brochure
+                      Unduh Brosur
                     </Button>
                   </div>
                 </div>

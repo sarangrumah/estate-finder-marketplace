@@ -4,6 +4,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { Building, User, Search, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState } from 'react';
+import ChatWidget from './ChatWidget';
 
 const Layout = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -108,6 +109,9 @@ const Layout = () => {
       <main>
         <Outlet />
       </main>
+
+      {/* Chat Widget */}
+      <ChatWidget />
 
       {/* Footer */}
       <footer className="bg-gradient-to-r from-gray-900 to-blue-900 text-white py-12">

@@ -1,6 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MapPin, Phone, Mail, Clock, Send } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,6 +10,10 @@ import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 
 const Contact = () => {
+  const [searchParams] = useSearchParams();
+  const propertyName = searchParams.get('property');
+  const propertyId = searchParams.get('id');
+
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -16,6 +21,16 @@ const Contact = () => {
     subject: '',
     message: ''
   });
+
+  useEffect(() => {
+    if (propertyName) {
+      setFormData(prev => ({
+        ...prev,
+        subject: `Pertanyaan tentang properti: ${propertyName}`,
+        message: `Halo, saya tertarik dengan properti "${propertyName}" dan ingin mendapatkan informasi lebih lanjut. Mohon dapat menghubungi saya untuk detail lebih lanjut.`
+      }));
+    }
+  }, [propertyName]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

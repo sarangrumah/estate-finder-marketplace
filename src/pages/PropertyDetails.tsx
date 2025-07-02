@@ -1,0 +1,263 @@
+
+import React, { useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { mockProperties } from '../data/mockData';
+import { MapPin, Home, Bath, Maximize, Calendar, User, Phone, Mail, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { toast } from '@/hooks/use-toast';
+
+const PropertyDetails = () => {
+  const { id } = useParams<{ id: string }>();
+  const property = mockProperties.find(p => p.id === id);
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [contactForm, setContactForm] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    message: ''
+  });
+
+  if (!property) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-gray-900 mb-4">Property Not Found</h1>
+          <Link to="/" className="text-blue-600 hover:text-blue-700">
+            Return to Properties
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(price);
+  };
+
+  const handleContactSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    toast({
+      title: "Inquiry Sent!",
+      description: "We'll contact you within 24 hours.",
+    });
+    setContactForm({ name: '', email: '', phone: '', message: '' });
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Back Button */}
+        <div className="mb-6">
+          <Link to="/" className="inline-flex items-center text-blue-600 hover:text-blue-700">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Properties
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-2">
+            {/* Image Gallery */}
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+              <div className="aspect-video bg-gray-200 relative">
+                <img
+                  src={property.images[selectedImage]}
+                  alt={property.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute top-4 right-4">
+                  <Badge 
+                    variant={property.status === 'available' ? 'default' : 'secondary'}
+                    className="capitalize"
+                  >
+                    {property.status}
+                  </Badge>
+                </div>
+              </div>
+              
+              {/* Image Thumbnails */}
+              <div className="p-4 flex gap-2 overflow-x-auto">
+                {property.images.map((image, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedImage(index)}
+                    className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 ${
+                      selectedImage === index ? 'border-blue-500' : 'border-gray-200'
+                    }`}
+                  >
+                    <img
+                      src={image}
+                      alt={`${property.title} ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Property Info */}
+            <Card className="mb-6">
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <Badge variant="outline" className="capitalize mb-2">
+                      {property.type}
+                    </Badge>
+                    <CardTitle className="text-2xl mb-2">{property.title}</CardTitle>
+                    <div className="flex items-center text-gray-600">
+                      <MapPin className="h-4 w-4 mr-1" />
+                      <span>{property.location.address}, {property.location.city}, {property.location.state}</span>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-3xl font-bold text-blue-600">
+                      {formatPrice(property.price)}
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <Home className="h-6 w-6 mx-auto mb-2 text-gray-600" />
+                    <div className="font-semibold">{property.bedrooms}</div>
+                    <div className="text-sm text-gray-600">Bedrooms</div>
+                  </div>
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <Bath className="h-6 w-6 mx-auto mb-2 text-gray-600" />
+                    <div className="font-semibold">{property.bathrooms}</div>
+                    <div className="text-sm text-gray-600">Bathrooms</div>
+                  </div>
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <Maximize className="h-6 w-6 mx-auto mb-2 text-gray-600" />
+                    <div className="font-semibold">{property.area.toLocaleString()}</div>
+                    <div className="text-sm text-gray-600">Sq Ft</div>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold mb-3">Description</h3>
+                  <p className="text-gray-600 leading-relaxed">{property.description}</p>
+                </div>
+
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold mb-3">Developer</h3>
+                  <div className="flex items-center p-4 bg-gray-50 rounded-lg">
+                    <User className="h-8 w-8 text-gray-400 mr-3" />
+                    <div>
+                      <div className="font-semibold">{property.developer}</div>
+                      <div className="text-sm text-gray-600">Trusted Developer</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold mb-3">Features & Amenities</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {property.features.map((feature, index) => (
+                      <Badge key={index} variant="secondary">
+                        {feature}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center text-sm text-gray-500">
+                  <Calendar className="h-4 w-4 mr-1" />
+                  <span>Listed on {new Date(property.createdAt).toLocaleDateString()}</span>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sidebar */}
+          <div className="lg:col-span-1">
+            {/* Contact Form */}
+            <Card className="sticky top-8">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Phone className="h-5 w-5 mr-2" />
+                  Interested in this property?
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleContactSubmit} className="space-y-4">
+                  <div>
+                    <Label htmlFor="name">Full Name</Label>
+                    <Input
+                      id="name"
+                      value={contactForm.name}
+                      onChange={(e) => setContactForm({...contactForm, name: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={contactForm.email}
+                      onChange={(e) => setContactForm({...contactForm, email: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="phone">Phone</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={contactForm.phone}
+                      onChange={(e) => setContactForm({...contactForm, phone: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="message">Message</Label>
+                    <Textarea
+                      id="message"
+                      placeholder="I'm interested in this property. Please contact me with more details."
+                      value={contactForm.message}
+                      onChange={(e) => setContactForm({...contactForm, message: e.target.value})}
+                      rows={4}
+                    />
+                  </div>
+                  <Button type="submit" className="w-full">
+                    <Mail className="h-4 w-4 mr-2" />
+                    Send Inquiry
+                  </Button>
+                </form>
+
+                <div className="mt-6 pt-6 border-t">
+                  <h4 className="font-semibold mb-3">Quick Actions</h4>
+                  <div className="space-y-2">
+                    <Button variant="outline" className="w-full">
+                      Schedule Viewing
+                    </Button>
+                    <Button variant="outline" className="w-full">
+                      Request Virtual Tour
+                    </Button>
+                    <Button variant="outline" className="w-full">
+                      Download Brochure
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default PropertyDetails;

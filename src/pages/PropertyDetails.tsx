@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { mockProperties } from '../data/mockData';
-import { MapPin, Home, Bath, Maximize, Calendar, User, Phone, Mail, ArrowLeft } from 'lucide-react';
+import { MapPin, Home, Bath, Maximize, Calendar, User, Phone, Mail, ArrowLeft, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
+import ChatWidget from '../components/ChatWidget';
 
 const PropertyDetails = () => {
   const { id } = useParams<{ id: string }>();
@@ -105,6 +106,49 @@ const PropertyDetails = () => {
               </div>
             </div>
 
+            {/* Additional Image Sections */}
+            {property.floorPlanImages && property.floorPlanImages.length > 0 && (
+              <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+                <div className="p-4 border-b">
+                  <h3 className="text-lg font-semibold">Denah Lantai</h3>
+                </div>
+                <div className="p-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {property.floorPlanImages.map((image, index) => (
+                      <div key={index} className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                        <img
+                          src={image}
+                          alt={`Denah lantai ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {property.facilityImages && property.facilityImages.length > 0 && (
+              <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+                <div className="p-4 border-b">
+                  <h3 className="text-lg font-semibold">Fasilitas</h3>
+                </div>
+                <div className="p-4">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {property.facilityImages.map((image, index) => (
+                      <div key={index} className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
+                        <img
+                          src={image}
+                          alt={`Fasilitas ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Property Info */}
             <Card className="mb-6">
               <CardHeader>
@@ -157,6 +201,24 @@ const PropertyDetails = () => {
                     <div>
                       <div className="font-semibold">{property.developer}</div>
                       <div className="text-sm text-gray-600">Developer Terpercaya</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mb-6">
+                  <h3 className="text-lg font-semibold mb-3">Informasi Unit</h3>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="text-center p-4 bg-gray-50 rounded-lg">
+                      <div className="font-semibold text-2xl text-blue-600">{property.totalUnits}</div>
+                      <div className="text-sm text-gray-600">Total Unit</div>
+                    </div>
+                    <div className="text-center p-4 bg-green-50 rounded-lg">
+                      <div className="font-semibold text-2xl text-green-600">{property.availableUnits}</div>
+                      <div className="text-sm text-gray-600">Unit Tersedia</div>
+                    </div>
+                    <div className="text-center p-4 bg-red-50 rounded-lg">
+                      <div className="font-semibold text-2xl text-red-600">{property.soldUnits}</div>
+                      <div className="text-sm text-gray-600">Unit Terjual</div>
                     </div>
                   </div>
                 </div>
@@ -249,6 +311,18 @@ const PropertyDetails = () => {
                     <Button variant="outline" className="w-full">
                       Unduh Brosur
                     </Button>
+                    <Button 
+                      variant="outline" 
+                      className="w-full"
+                      onClick={() => {
+                        const message = `Halo, saya tertarik dengan properti ${property.title}. Bisakah saya mendapat informasi lebih detail?`;
+                        const whatsappUrl = `https://wa.me/6281234567890?text=${encodeURIComponent(message)}`;
+                        window.open(whatsappUrl, '_blank');
+                      }}
+                    >
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      WhatsApp Admin
+                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -256,6 +330,7 @@ const PropertyDetails = () => {
           </div>
         </div>
       </div>
+      <ChatWidget />
     </div>
   );
 };

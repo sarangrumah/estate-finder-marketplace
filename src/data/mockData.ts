@@ -1,5 +1,5 @@
 
-import { Property, Lead, Customer } from '../types';
+import { Property, Lead, Customer, Developer } from '../types';
 
 export const mockProperties: Property[] = [
   {
@@ -18,9 +18,14 @@ export const mockProperties: Property[] = [
     bathrooms: 2,
     area: 1200,
     images: ['/placeholder.svg', '/placeholder.svg', '/placeholder.svg'],
+    floorPlanImages: ['/placeholder.svg', '/placeholder.svg'],
+    facilityImages: ['/placeholder.svg', '/placeholder.svg', '/placeholder.svg'],
     developer: 'Metropolitan Developments',
     features: ['Gym', 'Pool', 'Parking', 'Balcony', 'City View'],
     status: 'available',
+    totalUnits: 100,
+    availableUnits: 75,
+    soldUnits: 25,
     createdAt: '2024-01-15',
     updatedAt: '2024-01-15'
   },
@@ -40,9 +45,14 @@ export const mockProperties: Property[] = [
     bathrooms: 3,
     area: 2500,
     images: ['/placeholder.svg', '/placeholder.svg', '/placeholder.svg'],
+    floorPlanImages: ['/placeholder.svg'],
+    facilityImages: ['/placeholder.svg', '/placeholder.svg'],
     developer: 'Sunshine Homes',
     features: ['Garden', 'Garage', 'Fireplace', 'Walk-in Closet'],
     status: 'available',
+    totalUnits: 50,
+    availableUnits: 30,
+    soldUnits: 20,
     createdAt: '2024-01-16',
     updatedAt: '2024-01-16'
   },
@@ -62,9 +72,14 @@ export const mockProperties: Property[] = [
     bathrooms: 1,
     area: 800,
     images: ['/placeholder.svg', '/placeholder.svg', '/placeholder.svg'],
+    floorPlanImages: ['/placeholder.svg'],
+    facilityImages: ['/placeholder.svg', '/placeholder.svg'],
     developer: 'Lakefront Properties',
     features: ['Lake View', 'Concierge', 'Fitness Center'],
     status: 'available',
+    totalUnits: 80,
+    availableUnits: 60,
+    soldUnits: 20,
     createdAt: '2024-01-17',
     updatedAt: '2024-01-17'
   },
@@ -84,9 +99,14 @@ export const mockProperties: Property[] = [
     bathrooms: 2,
     area: 1800,
     images: ['/placeholder.svg', '/placeholder.svg', '/placeholder.svg'],
+    floorPlanImages: ['/placeholder.svg', '/placeholder.svg'],
+    facilityImages: ['/placeholder.svg', '/placeholder.svg', '/placeholder.svg'],
     developer: 'Elite Residences',
     features: ['Rooftop Terrace', 'Private Entrance', 'Hardwood Floors'],
     status: 'available',
+    totalUnits: 30,
+    availableUnits: 18,
+    soldUnits: 12,
     createdAt: '2024-01-18',
     updatedAt: '2024-01-18'
   }
@@ -167,5 +187,76 @@ export const mockCustomers: Customer[] = [
     location: 'Los Angeles, CA',
     createdAt: '2024-07-01T14:15:00Z',
     lastActivity: '2024-07-01T16:30:00Z'
+  }
+];
+
+export const mockDevelopers: Developer[] = [
+  {
+    id: '1',
+    name: 'Metropolitan Developments',
+    description: 'Developer properti premium dengan fokus pada desain modern dan lokasi strategis di pusat kota.',
+    logo: '/placeholder.svg',
+    contactPerson: 'John Anderson',
+    email: 'contact@metropolitan-dev.com',
+    phone: '+62 21 1234 5678',
+    address: 'Jl. Sudirman No. 123, Jakarta Selatan',
+    website: 'https://metropolitan-dev.com',
+    establishedYear: 2010,
+    totalProjects: 15,
+    commissionRate: 3.0,
+    status: 'active',
+    createdAt: '2024-01-01',
+    updatedAt: '2024-01-01'
+  },
+  {
+    id: '2',
+    name: 'Sunshine Homes',
+    description: 'Spesialis dalam pengembangan rumah keluarga dengan lingkungan yang nyaman dan fasilitas lengkap.',
+    logo: '/placeholder.svg',
+    contactPerson: 'Sarah Mitchell',
+    email: 'info@sunshine-homes.com',
+    phone: '+62 21 2345 6789',
+    address: 'Jl. Kemang Raya No. 456, Jakarta Selatan',
+    website: 'https://sunshine-homes.com',
+    establishedYear: 2008,
+    totalProjects: 25,
+    commissionRate: 2.5,
+    status: 'active',
+    createdAt: '2024-01-02',
+    updatedAt: '2024-01-02'
+  },
+  {
+    id: '3',
+    name: 'Lakefront Properties',
+    description: 'Developer properti mewah dengan pemandangan danau dan konsep resort living.',
+    logo: '/placeholder.svg',
+    contactPerson: 'Michael Chen',
+    email: 'hello@lakefront-prop.com',
+    phone: '+62 21 3456 7890',
+    address: 'Jl. BSD Boulevard No. 789, Tangerang Selatan',
+    website: 'https://lakefront-prop.com',
+    establishedYear: 2015,
+    totalProjects: 8,
+    commissionRate: 3.5,
+    status: 'active',
+    createdAt: '2024-01-03',
+    updatedAt: '2024-01-03'
+  },
+  {
+    id: '4',
+    name: 'Elite Residences',
+    description: 'Premium developer yang menghadirkan hunian eksklusif dengan standar internasional.',
+    logo: '/placeholder.svg',
+    contactPerson: 'Diana Rodriguez',
+    email: 'contact@elite-residences.com',
+    phone: '+62 21 4567 8901',
+    address: 'Jl. Senayan No. 101, Jakarta Pusat',
+    website: 'https://elite-residences.com',
+    establishedYear: 2012,
+    totalProjects: 12,
+    commissionRate: 4.0,
+    status: 'active',
+    createdAt: '2024-01-04',
+    updatedAt: '2024-01-04'
   }
 ];

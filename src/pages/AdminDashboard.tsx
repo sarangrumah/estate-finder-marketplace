@@ -6,8 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { mockProperties, mockLeads, mockCustomers } from '../data/mockData';
-import { Property, Lead, Customer } from '../types';
+import { mockProperties, mockLeads, mockCustomers, mockDevelopers } from '../data/mockData';
+import { Property, Lead, Customer, Developer } from '../types';
 import { 
   Building, 
   Users, 
@@ -22,7 +22,11 @@ import {
   Plus,
   Eye,
   Edit,
-  Trash2
+  Trash2,
+  ExternalLink,
+  Globe,
+  Calendar,
+  Briefcase
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -30,12 +34,13 @@ const AdminDashboard = () => {
   const [properties] = useState<Property[]>(mockProperties);
   const [leads] = useState<Lead[]>(mockLeads);
   const [customers] = useState<Customer[]>(mockCustomers);
+  const [developers] = useState<Developer[]>(mockDevelopers);
   const [searchTerm, setSearchTerm] = useState('');
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('id-ID', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'IDR',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(price);
@@ -76,17 +81,17 @@ const AdminDashboard = () => {
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-2">
               <Building className="h-8 w-8 text-blue-600" />
-              <span className="text-xl font-bold text-gray-900">PropertyHub Admin</span>
+              <span className="text-xl font-bold text-gray-900">Admin Sarang Rumah</span>
             </div>
             <div className="flex items-center space-x-4">
               <Link to="/" className="text-gray-600 hover:text-gray-900">
-                View Public Site
+                Lihat Website Publik
               </Link>
               <div className="flex items-center space-x-2">
                 <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-semibold">A</span>
                 </div>
-                <span className="text-sm text-gray-700">Admin User</span>
+                <span className="text-sm text-gray-700">Pengguna Admin</span>
               </div>
             </div>
           </div>
@@ -101,7 +106,7 @@ const AdminDashboard = () => {
               <div className="flex items-center">
                 <Building className="h-8 w-8 text-blue-600" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Properties</p>
+                  <p className="text-sm font-medium text-gray-600">Total Properti</p>
                   <p className="text-2xl font-bold text-gray-900">{totalProperties}</p>
                 </div>
               </div>
@@ -113,7 +118,7 @@ const AdminDashboard = () => {
               <div className="flex items-center">
                 <TrendingUp className="h-8 w-8 text-green-600" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Available</p>
+                  <p className="text-sm font-medium text-gray-600">Tersedia</p>
                   <p className="text-2xl font-bold text-gray-900">{availableProperties}</p>
                 </div>
               </div>
@@ -125,7 +130,7 @@ const AdminDashboard = () => {
               <div className="flex items-center">
                 <Users className="h-8 w-8 text-purple-600" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Leads</p>
+                  <p className="text-sm font-medium text-gray-600">Total Lead</p>
                   <p className="text-2xl font-bold text-gray-900">{totalLeads}</p>
                 </div>
               </div>
@@ -137,7 +142,7 @@ const AdminDashboard = () => {
               <div className="flex items-center">
                 <AlertCircle className="h-8 w-8 text-red-600" />
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">New Leads</p>
+                  <p className="text-sm font-medium text-gray-600">Lead Baru</p>
                   <p className="text-2xl font-bold text-gray-900">{newLeads}</p>
                 </div>
               </div>
@@ -147,11 +152,12 @@ const AdminDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="properties" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="properties">Properties</TabsTrigger>
-            <TabsTrigger value="leads">Leads</TabsTrigger>
-            <TabsTrigger value="customers">Customers</TabsTrigger>
-            <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="properties">Properti</TabsTrigger>
+            <TabsTrigger value="developers">Developer</TabsTrigger>
+            <TabsTrigger value="leads">Lead</TabsTrigger>
+            <TabsTrigger value="customers">Pelanggan</TabsTrigger>
+            <TabsTrigger value="analytics">Analitik</TabsTrigger>
           </TabsList>
 
           {/* Properties Tab */}
@@ -159,10 +165,10 @@ const AdminDashboard = () => {
             <Card>
               <CardHeader>
                 <div className="flex justify-between items-center">
-                  <CardTitle>Property Management</CardTitle>
-                  <Button>
+                  <CardTitle>Manajemen Properti</CardTitle>
+                  <Button className="bg-primary hover:bg-primary/90">
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Property
+                    Tambah Properti
                   </Button>
                 </div>
               </CardHeader>
@@ -193,14 +199,91 @@ const AdminDashboard = () => {
                       </div>
                       <div className="text-right">
                         <p className="font-semibold text-lg">{formatPrice(property.price)}</p>
+                        <p className="text-sm text-gray-500">
+                          {property.availableUnits}/{property.totalUnits} unit tersedia
+                        </p>
                         <div className="flex space-x-2 mt-2">
-                          <Button size="sm" variant="outline">
+                          <Button size="sm" variant="outline" className="hover:bg-primary/10">
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="outline">
+                          <Button size="sm" variant="outline" className="hover:bg-accent">
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="outline">
+                          <Button size="sm" variant="outline" className="hover:bg-destructive/10 hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Developers Tab */}
+          <TabsContent value="developers">
+            <Card>
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <CardTitle>Manajemen Developer</CardTitle>
+                  <Button className="bg-primary hover:bg-primary/90">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Tambah Developer
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {developers.map((developer) => (
+                    <div key={developer.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-start space-x-4">
+                        <img
+                          src={developer.logo || '/placeholder.svg'}
+                          alt={developer.name}
+                          className="w-16 h-16 object-cover rounded-lg"
+                        />
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{developer.name}</h3>
+                          <p className="text-sm text-gray-600 mb-1">{developer.contactPerson}</p>
+                          <p className="text-sm text-gray-600">{developer.email}</p>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <Badge variant="outline">
+                              <Calendar className="h-3 w-3 mr-1" />
+                              {developer.establishedYear}
+                            </Badge>
+                            <Badge variant="outline">
+                              <Briefcase className="h-3 w-3 mr-1" />
+                              {developer.totalProjects} proyek
+                            </Badge>
+                            <Badge className={developer.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}>
+                              {developer.status === 'active' ? 'Aktif' : 'Tidak Aktif'}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-lg">{developer.commissionRate}% komisi</p>
+                        <p className="text-sm text-gray-500">{developer.phone}</p>
+                        {developer.website && (
+                          <a 
+                            href={developer.website} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-sm text-blue-600 hover:text-blue-700 flex items-center"
+                          >
+                            <Globe className="h-3 w-3 mr-1" />
+                            Website
+                          </a>
+                        )}
+                        <div className="flex space-x-2 mt-2">
+                          <Button size="sm" variant="outline" className="hover:bg-primary/10">
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="outline" className="hover:bg-accent">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button size="sm" variant="outline" className="hover:bg-destructive/10 hover:text-destructive">
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -217,10 +300,10 @@ const AdminDashboard = () => {
             <Card>
               <CardHeader>
                 <div className="flex justify-between items-center">
-                  <CardTitle>Lead Management</CardTitle>
+                  <CardTitle>Manajemen Lead</CardTitle>
                   <div className="flex space-x-2">
                     <Input
-                      placeholder="Search leads..."
+                      placeholder="Cari lead..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-64"
@@ -264,7 +347,7 @@ const AdminDashboard = () => {
                         </div>
                         <div className="flex items-center text-sm text-gray-600">
                           <MessageSquare className="h-4 w-4 mr-2" />
-                          {lead.communicationHistory.length} interactions
+                          {lead.communicationHistory.length} interaksi
                         </div>
                       </div>
                       
@@ -272,17 +355,17 @@ const AdminDashboard = () => {
                       
                       <div className="flex justify-between items-center">
                         <span className="text-xs text-gray-500">
-                          Created {new Date(lead.createdAt).toLocaleDateString()}
+                          Dibuat {new Date(lead.createdAt).toLocaleDateString('id-ID')}
                         </span>
                         <div className="flex space-x-2">
-                          <Button size="sm" variant="outline">
-                            Contact
+                          <Button size="sm" variant="outline" className="hover:bg-primary/10">
+                            Kontak
                           </Button>
-                          <Button size="sm" variant="outline">
+                          <Button size="sm" variant="outline" className="hover:bg-accent">
                             Update Status
                           </Button>
-                          <Button size="sm" variant="outline">
-                            View History
+                          <Button size="sm" variant="outline" className="hover:bg-secondary">
+                            Lihat Riwayat
                           </Button>
                         </div>
                       </div>
@@ -297,7 +380,7 @@ const AdminDashboard = () => {
           <TabsContent value="customers">
             <Card>
               <CardHeader>
-                <CardTitle>Customer Management</CardTitle>
+                <CardTitle>Manajemen Pelanggan</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -325,7 +408,7 @@ const AdminDashboard = () => {
                       </div>
                       
                       <div className="mb-3">
-                        <p className="text-sm text-gray-600 mb-1">Budget: {formatPrice(customer.budget.min)} - {formatPrice(customer.budget.max)}</p>
+                        <p className="text-sm text-gray-600 mb-1">Anggaran: {formatPrice(customer.budget.min)} - {formatPrice(customer.budget.max)}</p>
                         <div className="flex flex-wrap gap-1">
                           {customer.interests.map((interest, index) => (
                             <Badge key={index} variant="secondary" className="text-xs">
@@ -337,14 +420,14 @@ const AdminDashboard = () => {
                       
                       <div className="flex justify-between items-center">
                         <span className="text-xs text-gray-500">
-                          Last activity: {new Date(customer.lastActivity).toLocaleDateString()}
+                          Aktivitas terakhir: {new Date(customer.lastActivity).toLocaleDateString('id-ID')}
                         </span>
                         <div className="flex space-x-2">
-                          <Button size="sm" variant="outline">
-                            Contact
+                          <Button size="sm" variant="outline" className="hover:bg-primary/10">
+                            Kontak
                           </Button>
-                          <Button size="sm" variant="outline">
-                            View Profile
+                          <Button size="sm" variant="outline" className="hover:bg-accent">
+                            Lihat Profil
                           </Button>
                         </div>
                       </div>
@@ -360,7 +443,7 @@ const AdminDashboard = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Lead Sources</CardTitle>
+                  <CardTitle>Sumber Lead</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
@@ -369,11 +452,11 @@ const AdminDashboard = () => {
                       <span className="font-semibold">65%</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span>Referrals</span>
+                      <span>Referensi</span>
                       <span className="font-semibold">25%</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span>Social Media</span>
+                      <span>Media Sosial</span>
                       <span className="font-semibold">10%</span>
                     </div>
                   </div>
@@ -382,21 +465,21 @@ const AdminDashboard = () => {
               
               <Card>
                 <CardHeader>
-                  <CardTitle>Property Performance</CardTitle>
+                  <CardTitle>Performa Properti</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <span>Average Days on Market</span>
-                      <span className="font-semibold">45 days</span>
+                      <span>Rata-rata Hari di Pasar</span>
+                      <span className="font-semibold">45 hari</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span>Conversion Rate</span>
+                      <span>Tingkat Konversi</span>
                       <span className="font-semibold">12%</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span>Average Property Value</span>
-                      <span className="font-semibold">{formatPrice(580000)}</span>
+                      <span>Nilai Properti Rata-rata</span>
+                      <span className="font-semibold">{formatPrice(5800000000)}</span>
                     </div>
                   </div>
                 </CardContent>

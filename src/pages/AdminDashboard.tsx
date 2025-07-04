@@ -5,9 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { mockProperties, mockLeads, mockCustomers, mockDevelopers } from '../data/mockData';
 import { Property, Lead, Customer, Developer } from '../types';
+import PropertyForm from '../components/admin/PropertyForm';
+import DeveloperForm from '../components/admin/DeveloperForm';
+import ImportTemplate from '../components/admin/ImportTemplate';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Building, 
   Users, 
@@ -23,19 +27,27 @@ import {
   Eye,
   Edit,
   Trash2,
-  ExternalLink,
   Globe,
   Calendar,
-  Briefcase
+  Briefcase,
+  FileDown
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const AdminDashboard = () => {
-  const [properties] = useState<Property[]>(mockProperties);
-  const [leads] = useState<Lead[]>(mockLeads);
-  const [customers] = useState<Customer[]>(mockCustomers);
-  const [developers] = useState<Developer[]>(mockDevelopers);
+  const [properties, setProperties] = useState<Property[]>(mockProperties);
+  const [leads, setLeads] = useState<Lead[]>(mockLeads);
+  const [customers, setCustomers] = useState<Customer[]>(mockCustomers);
+  const [developers, setDevelopers] = useState<Developer[]>(mockDevelopers);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Form states
+  const [showPropertyForm, setShowPropertyForm] = useState(false);
+  const [showDeveloperForm, setShowDeveloperForm] = useState(false);
+  const [editingProperty, setEditingProperty] = useState<Property | undefined>();
+  const [editingDeveloper, setEditingDeveloper] = useState<Developer | undefined>();
+  
+  const { toast } = useToast();
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -64,6 +76,65 @@ const AdminDashboard = () => {
       case 'low': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  // CRUD Operations
+  const handleSaveProperty = (propertyData: any) => {
+    if (editingProperty) {
+      setProperties(prev => prev.map(p => 
+        p.id === editingProperty.id 
+          ? { ...editingProperty, ...propertyData, updatedAt: new Date().toISOString() }
+          : p
+      ));
+    } else {
+      const newProperty: Property = {
+        id: Date.now().toString(),
+        ...propertyData,
+        status: 'available' as const,
+        soldUnits: 0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      setProperties(prev => [...prev, newProperty]);
+    }
+    setEditingProperty(undefined);
+    setShowPropertyForm(false);
+  };
+
+  const handleDeleteProperty = (id: string) => {
+    setProperties(prev => prev.filter(p => p.id !== id));
+    toast({
+      title: 'Properti Dihapus',
+      description: 'Properti berhasil dihapus dari sistem',
+    });
+  };
+
+  const handleSaveDeveloper = (developerData: any) => {
+    if (editingDeveloper) {
+      setDevelopers(prev => prev.map(d => 
+        d.id === editingDeveloper.id 
+          ? { ...editingDeveloper, ...developerData, updatedAt: new Date().toISOString() }
+          : d
+      ));
+    } else {
+      const newDeveloper: Developer = {
+        id: Date.now().toString(),
+        ...developerData,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      setDevelopers(prev => [...prev, newDeveloper]);
+    }
+    setEditingDeveloper(undefined);
+    setShowDeveloperForm(false);
+  };
+
+  const handleDeleteDeveloper = (id: string) => {
+    setDevelopers(prev => prev.filter(d => d.id !== id));
+    toast({
+      title: 'Developer Dihapus',
+      description: 'Developer berhasil dihapus dari sistem',
+    });
   };
 
   // Statistics
@@ -166,10 +237,13 @@ const AdminDashboard = () => {
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <CardTitle>Manajemen Properti</CardTitle>
-                  <Button className="bg-primary hover:bg-primary/90">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Tambah Properti
-                  </Button>
+                  <div className="flex gap-2">
+                    <ImportTemplate type="property" />
+                    <Button onClick={() => setShowPropertyForm(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Tambah Properti
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -203,15 +277,42 @@ const AdminDashboard = () => {
                           {property.availableUnits}/{property.totalUnits} unit tersedia
                         </p>
                         <div className="flex space-x-2 mt-2">
-                          <Button size="sm" variant="outline" className="hover:bg-primary/10">
-                            <Eye className="h-4 w-4" />
+                          <Button size="sm" variant="outline" asChild>
+                            <Link to={`/property/${property.id}`}>
+                              <Eye className="h-4 w-4" />
+                            </Link>
                           </Button>
-                          <Button size="sm" variant="outline" className="hover:bg-accent">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={() => {
+                              setEditingProperty(property);
+                              setShowPropertyForm(true);
+                            }}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="outline" className="hover:bg-destructive/10 hover:text-destructive">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button size="sm" variant="outline" className="hover:bg-destructive/10 hover:text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Hapus Properti</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Apakah Anda yakin ingin menghapus properti "{property.title}"? Tindakan ini tidak dapat dibatalkan.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Batal</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteProperty(property.id)}>
+                                  Hapus
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </div>
                     </div>
@@ -227,10 +328,13 @@ const AdminDashboard = () => {
               <CardHeader>
                 <div className="flex justify-between items-center">
                   <CardTitle>Manajemen Developer</CardTitle>
-                  <Button className="bg-primary hover:bg-primary/90">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Tambah Developer
-                  </Button>
+                  <div className="flex gap-2">
+                    <ImportTemplate type="developer" />
+                    <Button onClick={() => setShowDeveloperForm(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Tambah Developer
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -277,15 +381,37 @@ const AdminDashboard = () => {
                           </a>
                         )}
                         <div className="flex space-x-2 mt-2">
-                          <Button size="sm" variant="outline" className="hover:bg-primary/10">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button size="sm" variant="outline" className="hover:bg-accent">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => {
+                              setEditingDeveloper(developer);
+                              setShowDeveloperForm(true);
+                            }}
+                          >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button size="sm" variant="outline" className="hover:bg-destructive/10 hover:text-destructive">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button size="sm" variant="outline" className="hover:bg-destructive/10 hover:text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Hapus Developer</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Apakah Anda yakin ingin menghapus developer "{developer.name}"? Tindakan ini tidak dapat dibatalkan.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Batal</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteDeveloper(developer.id)}>
+                                  Hapus
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                         </div>
                       </div>
                     </div>
@@ -358,13 +484,13 @@ const AdminDashboard = () => {
                           Dibuat {new Date(lead.createdAt).toLocaleDateString('id-ID')}
                         </span>
                         <div className="flex space-x-2">
-                          <Button size="sm" variant="outline" className="hover:bg-primary/10">
+                          <Button size="sm" variant="outline">
                             Kontak
                           </Button>
-                          <Button size="sm" variant="outline" className="hover:bg-accent">
+                          <Button size="sm" variant="outline">
                             Update Status
                           </Button>
-                          <Button size="sm" variant="outline" className="hover:bg-secondary">
+                          <Button size="sm" variant="outline">
                             Lihat Riwayat
                           </Button>
                         </div>
@@ -423,10 +549,10 @@ const AdminDashboard = () => {
                           Aktivitas terakhir: {new Date(customer.lastActivity).toLocaleDateString('id-ID')}
                         </span>
                         <div className="flex space-x-2">
-                          <Button size="sm" variant="outline" className="hover:bg-primary/10">
+                          <Button size="sm" variant="outline">
                             Kontak
                           </Button>
-                          <Button size="sm" variant="outline" className="hover:bg-accent">
+                          <Button size="sm" variant="outline">
                             Lihat Profil
                           </Button>
                         </div>
@@ -488,6 +614,27 @@ const AdminDashboard = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Forms */}
+      <PropertyForm
+        isOpen={showPropertyForm}
+        onClose={() => {
+          setShowPropertyForm(false);
+          setEditingProperty(undefined);
+        }}
+        property={editingProperty}
+        onSave={handleSaveProperty}
+      />
+      
+      <DeveloperForm
+        isOpen={showDeveloperForm}
+        onClose={() => {
+          setShowDeveloperForm(false);
+          setEditingDeveloper(undefined);
+        }}
+        developer={editingDeveloper}
+        onSave={handleSaveDeveloper}
+      />
     </div>
   );
 };

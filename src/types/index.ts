@@ -20,6 +20,7 @@ export interface Property {
   images: string[];
   floorPlanImages?: string[];
   facilityImages?: string[];
+  brochureUrl?: string;
   developerId: string; // Reference to Developer ID
   developer: string; // Developer name for display
   features: string[];

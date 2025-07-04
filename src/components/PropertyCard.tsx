@@ -23,7 +23,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
       {/* Image */}
-      <div className="relative h-48 bg-gray-200">
+      <div className="relative aspect-[4/3] bg-gray-200">
         <img
           src={property.images[0]}
           alt={property.title}
@@ -67,7 +67,7 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
         </p>
 
         {/* Property Details */}
-        <div className="flex items-center justify-between mb-4 text-sm text-gray-600">
+        <div className="grid grid-cols-2 gap-2 mb-4 text-sm text-gray-600">
           <div className="flex items-center">
             <Home className="h-4 w-4 mr-1" />
             <span>{property.bedrooms} kamar</span>
@@ -79,6 +79,10 @@ const PropertyCard: React.FC<PropertyCardProps> = ({ property }) => {
           <div className="flex items-center">
             <Maximize className="h-4 w-4 mr-1" />
             <span>{property.area.toLocaleString()} m²</span>
+          </div>
+          <div className="flex items-center">
+            <span className="text-xs">🏢</span>
+            <span className="ml-1">{property.floors} lantai</span>
           </div>
         </div>
 

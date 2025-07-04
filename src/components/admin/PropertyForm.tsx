@@ -37,6 +37,7 @@ const propertySchema = z.object({
   images: z.string().min(1, 'URL gambar utama harus diisi'),
   floorPlanImages: z.string().optional(),
   facilityImages: z.string().optional(),
+  brochureUrl: z.string().optional(),
 });
 
 type PropertyFormData = z.infer<typeof propertySchema>;
@@ -72,6 +73,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ isOpen, onClose, property, 
       images: property.images.join(', '),
       floorPlanImages: property.floorPlanImages?.join(', ') || '',
       facilityImages: property.facilityImages?.join(', ') || '',
+      brochureUrl: property.brochureUrl || '',
     } : {
       title: '',
       description: '',
@@ -95,6 +97,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ isOpen, onClose, property, 
       images: '',
       floorPlanImages: '',
       facilityImages: '',
+      brochureUrl: '',
     }
   });
 
@@ -417,9 +420,26 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ isOpen, onClose, property, 
                     </FormControl>
                     <FormMessage />
                   </FormItem>
-                )}
-              />
-            </div>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="brochureUrl"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Brochure PDF (Opsional)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="URL brochure PDF" 
+                          {...field} 
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
             {/* Location Fields */}
             <div className="space-y-4">

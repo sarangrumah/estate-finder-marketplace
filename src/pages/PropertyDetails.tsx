@@ -2,13 +2,14 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useProperties } from '../hooks/useProperties';
-import { MapPin, Home, Bath, Maximize, Calendar, User, Phone, Mail, ArrowLeft, MessageCircle } from 'lucide-react';
+import { MapPin, Home, Bath, Maximize, Calendar, User, Phone, Mail, ArrowLeft, MessageCircle, Download, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import ChatWidget from '../components/ChatWidget';
 
@@ -17,6 +18,7 @@ const PropertyDetails = () => {
   const { getPropertyById } = useProperties();
   const property = getPropertyById(id || '');
   const [selectedImage, setSelectedImage] = useState(0);
+  const [imageModalOpen, setImageModalOpen] = useState(false);
   const [contactForm, setContactForm] = useState({
     name: '',
     email: '',
@@ -71,7 +73,7 @@ const PropertyDetails = () => {
           <div className="lg:col-span-2">
             {/* Image Gallery */}
             <div className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
-              <div className="aspect-video bg-gray-200 relative">
+              <div className="aspect-[4/3] bg-gray-200 relative cursor-pointer" onClick={() => setImageModalOpen(true)}>
                 <img
                   src={property.images[selectedImage]}
                   alt={property.title}
@@ -84,6 +86,11 @@ const PropertyDetails = () => {
                   >
                     {property.status}
                   </Badge>
+                </div>
+                <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors flex items-center justify-center">
+                  <div className="bg-white/80 rounded-full p-2 opacity-0 hover:opacity-100 transition-opacity">
+                    <Maximize className="h-6 w-6 text-gray-700" />
+                  </div>
                 </div>
               </div>
               
@@ -159,10 +166,13 @@ const PropertyDetails = () => {
                       {property.type}
                     </Badge>
                     <CardTitle className="text-2xl mb-2">{property.title}</CardTitle>
-                    <div className="flex items-center text-gray-600">
-                      <MapPin className="h-4 w-4 mr-1" />
-                      <span>{property.location.address}, {property.location.city}, {property.location.state}</span>
-                    </div>
+                <div className="flex items-center text-gray-600 mb-2">
+                  <MapPin className="h-4 w-4 mr-1" />
+                  <span>{property.location.address}, {property.location.city}, {property.location.state}</span>
+                </div>
+                <div className="text-sm text-gray-600">
+                  {property.floors} Lantai
+                </div>
                   </div>
                   <div className="text-right">
                     <div className="text-3xl font-bold text-blue-600">
@@ -309,9 +319,16 @@ const PropertyDetails = () => {
                     <Button variant="outline" className="w-full">
                       Minta Tur Virtual
                     </Button>
-                    <Button variant="outline" className="w-full">
-                      Unduh Brosur
-                    </Button>
+                    {property.brochureUrl && (
+                      <Button 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => window.open(property.brochureUrl, '_blank')}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        Unduh Brosur
+                      </Button>
+                    )}
                     <Button 
                       variant="outline" 
                       className="w-full"
@@ -331,6 +348,45 @@ const PropertyDetails = () => {
           </div>
         </div>
       </div>
+      
+      {/* Image Modal */}
+      <Dialog open={imageModalOpen} onOpenChange={setImageModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+          <div className="relative">
+            <button
+              onClick={() => setImageModalOpen(false)}
+              className="absolute top-4 right-4 z-10 bg-black/50 text-white rounded-full p-2 hover:bg-black/70 transition-colors"
+            >
+              <X className="h-6 w-6" />
+            </button>
+            <div className="aspect-[4/3] bg-gray-200">
+              <img
+                src={property.images[selectedImage]}
+                alt={property.title}
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <div className="p-4 flex gap-2 overflow-x-auto bg-white">
+              {property.images.map((image, index) => (
+                <button
+                  key={index}
+                  onClick={() => setSelectedImage(index)}
+                  className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 ${
+                    selectedImage === index ? 'border-blue-500' : 'border-gray-200'
+                  }`}
+                >
+                  <img
+                    src={image}
+                    alt={`${property.title} ${index + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
       <ChatWidget />
     </div>
   );

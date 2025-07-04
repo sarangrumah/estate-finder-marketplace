@@ -13,20 +13,28 @@ export const useProperties = () => {
 
   // Load data from localStorage or use mock data
   useEffect(() => {
-    const savedProperties = localStorage.getItem(STORAGE_KEYS.properties);
-    const savedDevelopers = localStorage.getItem(STORAGE_KEYS.developers);
+    const loadData = () => {
+      const savedProperties = localStorage.getItem(STORAGE_KEYS.properties);
+      const savedDevelopers = localStorage.getItem(STORAGE_KEYS.developers);
 
-    if (savedProperties) {
-      setProperties(JSON.parse(savedProperties));
-    } else {
-      setProperties(mockProperties);
-    }
+      if (savedProperties) {
+        const parsedProperties = JSON.parse(savedProperties);
+        setProperties(parsedProperties);
+      } else {
+        setProperties(mockProperties);
+        localStorage.setItem(STORAGE_KEYS.properties, JSON.stringify(mockProperties));
+      }
 
-    if (savedDevelopers) {
-      setDevelopers(JSON.parse(savedDevelopers));
-    } else {
-      setDevelopers(mockDevelopers);
-    }
+      if (savedDevelopers) {
+        const parsedDevelopers = JSON.parse(savedDevelopers);
+        setDevelopers(parsedDevelopers);
+      } else {
+        setDevelopers(mockDevelopers);
+        localStorage.setItem(STORAGE_KEYS.developers, JSON.stringify(mockDevelopers));
+      }
+    };
+
+    loadData();
   }, []);
 
   // Save properties to localStorage

@@ -12,6 +12,7 @@ import { Property, Lead, Customer, Developer } from '../types';
 import PropertyForm from '../components/admin/PropertyForm';
 import DeveloperForm from '../components/admin/DeveloperForm';
 import ImportTemplate from '../components/admin/ImportTemplate';
+import ChatManagement from '../components/admin/ChatManagement';
 import AdminAuth from '../components/admin/AdminAuth';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -236,12 +237,13 @@ const AdminDashboard = () => {
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="properties" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="properties">Properti</TabsTrigger>
             <TabsTrigger value="developers">Developer</TabsTrigger>
+            <TabsTrigger value="import">Import Data</TabsTrigger>
             <TabsTrigger value="leads">Lead</TabsTrigger>
             <TabsTrigger value="customers">Pelanggan</TabsTrigger>
-            <TabsTrigger value="analytics">Analitik</TabsTrigger>
+            <TabsTrigger value="chat">Chat</TabsTrigger>
           </TabsList>
 
           {/* Properties Tab */}
@@ -587,53 +589,24 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
-          {/* Analytics Tab */}
-          <TabsContent value="analytics">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Sumber Lead</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span>Website</span>
-                      <span className="font-semibold">65%</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span>Referensi</span>
-                      <span className="font-semibold">25%</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span>Media Sosial</span>
-                      <span className="font-semibold">10%</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader>
-                  <CardTitle>Performa Properti</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span>Rata-rata Hari di Pasar</span>
-                      <span className="font-semibold">45 hari</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span>Tingkat Konversi</span>
-                      <span className="font-semibold">12%</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span>Nilai Properti Rata-rata</span>
-                      <span className="font-semibold">{formatPrice(5800000000)}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+          {/* Import Tab */}
+          <TabsContent value="import" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Import Data</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <ImportTemplate type="property" />
+                  <ImportTemplate type="developer" />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Chat Tab */}
+          <TabsContent value="chat" className="space-y-6">
+            <ChatManagement />
           </TabsContent>
         </Tabs>
       </div>

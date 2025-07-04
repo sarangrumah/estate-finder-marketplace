@@ -27,14 +27,16 @@ const propertySchema = z.object({
   type: z.enum(['apartment', 'house', 'condo', 'townhouse']),
   bedrooms: z.number().min(0),
   bathrooms: z.number().min(0),
+  floors: z.number().min(1, 'Jumlah lantai minimal 1'),
   area: z.number().min(1, 'Luas area harus diisi'),
+  developerId: z.string().min(1, 'Developer harus dipilih'),
   developer: z.string().min(1, 'Developer harus diisi'),
-  features: z.array(z.string()),
+  features: z.string().min(1, 'Fitur harus diisi'),
   totalUnits: z.number().min(1, 'Total unit harus lebih dari 0'),
   availableUnits: z.number().min(0),
-  images: z.array(z.string()),
-  floorPlanImages: z.array(z.string()).optional(),
-  facilityImages: z.array(z.string()).optional(),
+  images: z.string().min(1, 'URL gambar utama harus diisi'),
+  floorPlanImages: z.string().optional(),
+  facilityImages: z.string().optional(),
 });
 
 type PropertyFormData = z.infer<typeof propertySchema>;
@@ -44,9 +46,10 @@ interface PropertyFormProps {
   onClose: () => void;
   property?: Property;
   onSave: (property: PropertyFormData) => void;
+  developers: { id: string; name: string }[];
 }
 
-const PropertyForm: React.FC<PropertyFormProps> = ({ isOpen, onClose, property, onSave }) => {
+const PropertyForm: React.FC<PropertyFormProps> = ({ isOpen, onClose, property, onSave, developers }) => {
   const { toast } = useToast();
   
   const form = useForm<PropertyFormData>({
@@ -59,14 +62,16 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ isOpen, onClose, property, 
       type: property.type,
       bedrooms: property.bedrooms,
       bathrooms: property.bathrooms,
+      floors: property.floors || 1,
       area: property.area,
+      developerId: property.developerId || '',
       developer: property.developer,
-      features: property.features,
+      features: property.features.join(', '),
       totalUnits: property.totalUnits,
       availableUnits: property.availableUnits,
-      images: property.images,
-      floorPlanImages: property.floorPlanImages || [],
-      facilityImages: property.facilityImages || [],
+      images: property.images.join(', '),
+      floorPlanImages: property.floorPlanImages?.join(', ') || '',
+      facilityImages: property.facilityImages?.join(', ') || '',
     } : {
       title: '',
       description: '',
@@ -80,19 +85,30 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ isOpen, onClose, property, 
       type: 'apartment',
       bedrooms: 0,
       bathrooms: 0,
+      floors: 1,
       area: 0,
+      developerId: '',
       developer: '',
-      features: [],
+      features: '',
       totalUnits: 1,
       availableUnits: 1,
-      images: [],
-      floorPlanImages: [],
-      facilityImages: [],
+      images: '',
+      floorPlanImages: '',
+      facilityImages: '',
     }
   });
 
   const onSubmit = (data: PropertyFormData) => {
-    onSave(data);
+    // Transform data before saving
+    const transformedData = {
+      ...data,
+      features: data.features.split(',').map(f => f.trim()).filter(f => f),
+      images: data.images.split(',').map(i => i.trim()).filter(i => i),
+      floorPlanImages: data.floorPlanImages ? data.floorPlanImages.split(',').map(i => i.trim()).filter(i => i) : [],
+      facilityImages: data.facilityImages ? data.facilityImages.split(',').map(i => i.trim()).filter(i => i) : [],
+    };
+    
+    onSave(transformedData as any);
     toast({
       title: property ? 'Properti Diperbarui' : 'Properti Ditambahkan',
       description: property ? 'Properti berhasil diperbarui' : 'Properti baru berhasil ditambahkan',
@@ -126,13 +142,30 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ isOpen, onClose, property, 
               
               <FormField
                 control={form.control}
-                name="developer"
+                name="developerId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Developer</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nama developer" {...field} />
-                    </FormControl>
+                    <Select onValueChange={(value) => {
+                      field.onChange(value);
+                      const selectedDev = developers.find(d => d.id === value);
+                      if (selectedDev) {
+                        form.setValue('developer', selectedDev.name);
+                      }
+                    }} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih developer" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {developers.map((dev) => (
+                          <SelectItem key={dev.id} value={dev.id}>
+                            {dev.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -217,7 +250,7 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ isOpen, onClose, property, 
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
               <FormField
                 control={form.control}
                 name="bedrooms"
@@ -249,6 +282,25 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ isOpen, onClose, property, 
                         placeholder="0" 
                         {...field}
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="floors"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Jumlah Lantai</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        placeholder="1" 
+                        {...field}
+                        onChange={(e) => field.onChange(parseInt(e.target.value) || 1)}
                       />
                     </FormControl>
                     <FormMessage />
@@ -287,6 +339,80 @@ const PropertyForm: React.FC<PropertyFormProps> = ({ isOpen, onClose, property, 
                         placeholder="1" 
                         {...field}
                         onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Features */}
+            <FormField
+              control={form.control}
+              name="features"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Fitur Properti</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Pisahkan dengan koma: Swimming Pool, Gym, Security 24/7, Playground" 
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Images Section */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Gambar Properti</h3>
+              
+              <FormField
+                control={form.control}
+                name="images"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Gambar Utama</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="URL gambar, pisahkan dengan koma jika lebih dari satu" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="floorPlanImages"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Gambar Denah (Opsional)</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="URL gambar denah, pisahkan dengan koma jika lebih dari satu" 
+                        {...field} 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="facilityImages"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Gambar Fasilitas (Opsional)</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="URL gambar fasilitas, pisahkan dengan koma jika lebih dari satu" 
+                        {...field} 
                       />
                     </FormControl>
                     <FormMessage />

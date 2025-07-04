@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,7 @@ import { Property, Lead, Customer, Developer } from '../types';
 import PropertyForm from '../components/admin/PropertyForm';
 import DeveloperForm from '../components/admin/DeveloperForm';
 import ImportTemplate from '../components/admin/ImportTemplate';
+import AdminAuth from '../components/admin/AdminAuth';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Building, 
@@ -35,6 +36,7 @@ import {
 import { Link } from 'react-router-dom';
 
 const AdminDashboard = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [properties, setProperties] = useState<Property[]>(mockProperties);
   const [leads, setLeads] = useState<Lead[]>(mockLeads);
   const [customers, setCustomers] = useState<Customer[]>(mockCustomers);
@@ -48,6 +50,22 @@ const AdminDashboard = () => {
   const [editingDeveloper, setEditingDeveloper] = useState<Developer | undefined>();
   
   const { toast } = useToast();
+
+  useEffect(() => {
+    const authStatus = localStorage.getItem('adminAuth');
+    if (authStatus === 'true') {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  const handleAuthenticate = () => {
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('adminAuth');
+    setIsAuthenticated(false);
+  };
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -83,7 +101,7 @@ const AdminDashboard = () => {
     if (editingProperty) {
       setProperties(prev => prev.map(p => 
         p.id === editingProperty.id 
-          ? { ...editingProperty, ...propertyData, updatedAt: new Date().toISOString() }
+          ? { ...p, ...propertyData, updatedAt: new Date().toISOString() }
           : p
       ));
     } else {
@@ -144,6 +162,11 @@ const AdminDashboard = () => {
   const newLeads = leads.filter(l => l.status === 'new').length;
   const flaggedLeads = leads.filter(l => l.flagged).length;
 
+  // Check authentication first
+  if (!isAuthenticated) {
+    return <AdminAuth onAuthenticate={handleAuthenticate} />;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -154,17 +177,20 @@ const AdminDashboard = () => {
               <Building className="h-8 w-8 text-blue-600" />
               <span className="text-xl font-bold text-gray-900">Admin Sarang Rumah</span>
             </div>
-            <div className="flex items-center space-x-4">
-              <Link to="/" className="text-gray-600 hover:text-gray-900">
-                Lihat Website Publik
-              </Link>
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-sm font-semibold">A</span>
+              <div className="flex items-center space-x-4">
+                <Link to="/" className="text-gray-600 hover:text-gray-900">
+                  Lihat Website Publik
+                </Link>
+                <Button variant="outline" size="sm" onClick={handleLogout}>
+                  Keluar
+                </Button>
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-semibold">A</span>
+                  </div>
+                  <span className="text-sm text-gray-700">Pengguna Admin</span>
                 </div>
-                <span className="text-sm text-gray-700">Pengguna Admin</span>
               </div>
-            </div>
           </div>
         </div>
       </header>
@@ -279,7 +305,8 @@ const AdminDashboard = () => {
                         <div className="flex space-x-2 mt-2">
                           <Button size="sm" variant="outline" asChild>
                             <Link to={`/property/${property.id}`}>
-                              <Eye className="h-4 w-4" />
+                              <Eye className="h-4 w-4 mr-1" />
+                              Lihat
                             </Link>
                           </Button>
                           <Button 
@@ -290,12 +317,14 @@ const AdminDashboard = () => {
                               setShowPropertyForm(true);
                             }}
                           >
-                            <Edit className="h-4 w-4" />
+                            <Edit className="h-4 w-4 mr-1" />
+                            Edit
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button size="sm" variant="outline" className="hover:bg-destructive/10 hover:text-destructive">
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Hapus
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
@@ -389,12 +418,14 @@ const AdminDashboard = () => {
                               setShowDeveloperForm(true);
                             }}
                           >
-                            <Edit className="h-4 w-4" />
+                            <Edit className="h-4 w-4 mr-1" />
+                            Edit
                           </Button>
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button size="sm" variant="outline" className="hover:bg-destructive/10 hover:text-destructive">
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Hapus
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
@@ -485,12 +516,15 @@ const AdminDashboard = () => {
                         </span>
                         <div className="flex space-x-2">
                           <Button size="sm" variant="outline">
+                            <Phone className="h-4 w-4 mr-1" />
                             Kontak
                           </Button>
                           <Button size="sm" variant="outline">
+                            <Edit className="h-4 w-4 mr-1" />
                             Update Status
                           </Button>
                           <Button size="sm" variant="outline">
+                            <Eye className="h-4 w-4 mr-1" />
                             Lihat Riwayat
                           </Button>
                         </div>
@@ -550,9 +584,11 @@ const AdminDashboard = () => {
                         </span>
                         <div className="flex space-x-2">
                           <Button size="sm" variant="outline">
+                            <Phone className="h-4 w-4 mr-1" />
                             Kontak
                           </Button>
                           <Button size="sm" variant="outline">
+                            <Eye className="h-4 w-4 mr-1" />
                             Lihat Profil
                           </Button>
                         </div>
@@ -624,6 +660,7 @@ const AdminDashboard = () => {
         }}
         property={editingProperty}
         onSave={handleSaveProperty}
+        developers={developers.map(d => ({ id: d.id, name: d.name }))}
       />
       
       <DeveloperForm

@@ -15,11 +15,13 @@ export interface Property {
   type: 'apartment' | 'house' | 'condo' | 'townhouse';
   bedrooms: number;
   bathrooms: number;
+  floors: number;
   area: number; // in square meters
   images: string[];
   floorPlanImages?: string[];
   facilityImages?: string[];
-  developer: string;
+  developerId: string; // Reference to Developer ID
+  developer: string; // Developer name for display
   features: string[];
   status: 'available' | 'sold' | 'pending';
   totalUnits: number;

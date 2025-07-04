@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { mockProperties } from '../data/mockData';
+import { useProperties } from '../hooks/useProperties';
 import { MapPin, Home, Bath, Maximize, Calendar, User, Phone, Mail, ArrowLeft, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +14,8 @@ import ChatWidget from '../components/ChatWidget';
 
 const PropertyDetails = () => {
   const { id } = useParams<{ id: string }>();
-  const property = mockProperties.find(p => p.id === id);
+  const { getPropertyById } = useProperties();
+  const property = getPropertyById(id || '');
   const [selectedImage, setSelectedImage] = useState(0);
   const [contactForm, setContactForm] = useState({
     name: '',

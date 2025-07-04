@@ -6,7 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { mockProperties, mockLeads, mockCustomers, mockDevelopers } from '../data/mockData';
+import { mockLeads, mockCustomers } from '../data/mockData';
+import { useProperties } from '../hooks/useProperties';
 import { Property, Lead, Customer, Developer } from '../types';
 import PropertyForm from '../components/admin/PropertyForm';
 import DeveloperForm from '../components/admin/DeveloperForm';
@@ -37,10 +38,18 @@ import { Link } from 'react-router-dom';
 
 const AdminDashboard = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [properties, setProperties] = useState<Property[]>(mockProperties);
+  const { 
+    properties, 
+    developers, 
+    addProperty, 
+    updateProperty, 
+    deleteProperty, 
+    addDeveloper, 
+    updateDeveloper, 
+    deleteDeveloper 
+  } = useProperties();
   const [leads, setLeads] = useState<Lead[]>(mockLeads);
   const [customers, setCustomers] = useState<Customer[]>(mockCustomers);
-  const [developers, setDevelopers] = useState<Developer[]>(mockDevelopers);
   const [searchTerm, setSearchTerm] = useState('');
   
   // Form states
@@ -99,28 +108,16 @@ const AdminDashboard = () => {
   // CRUD Operations
   const handleSaveProperty = (propertyData: any) => {
     if (editingProperty) {
-      setProperties(prev => prev.map(p => 
-        p.id === editingProperty.id 
-          ? { ...p, ...propertyData, updatedAt: new Date().toISOString() }
-          : p
-      ));
+      updateProperty(editingProperty.id, propertyData);
     } else {
-      const newProperty: Property = {
-        id: Date.now().toString(),
-        ...propertyData,
-        status: 'available' as const,
-        soldUnits: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setProperties(prev => [...prev, newProperty]);
+      addProperty(propertyData);
     }
     setEditingProperty(undefined);
     setShowPropertyForm(false);
   };
 
   const handleDeleteProperty = (id: string) => {
-    setProperties(prev => prev.filter(p => p.id !== id));
+    deleteProperty(id);
     toast({
       title: 'Properti Dihapus',
       description: 'Properti berhasil dihapus dari sistem',
@@ -129,26 +126,16 @@ const AdminDashboard = () => {
 
   const handleSaveDeveloper = (developerData: any) => {
     if (editingDeveloper) {
-      setDevelopers(prev => prev.map(d => 
-        d.id === editingDeveloper.id 
-          ? { ...editingDeveloper, ...developerData, updatedAt: new Date().toISOString() }
-          : d
-      ));
+      updateDeveloper(editingDeveloper.id, developerData);
     } else {
-      const newDeveloper: Developer = {
-        id: Date.now().toString(),
-        ...developerData,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setDevelopers(prev => [...prev, newDeveloper]);
+      addDeveloper(developerData);
     }
     setEditingDeveloper(undefined);
     setShowDeveloperForm(false);
   };
 
   const handleDeleteDeveloper = (id: string) => {
-    setDevelopers(prev => prev.filter(d => d.id !== id));
+    deleteDeveloper(id);
     toast({
       title: 'Developer Dihapus',
       description: 'Developer berhasil dihapus dari sistem',

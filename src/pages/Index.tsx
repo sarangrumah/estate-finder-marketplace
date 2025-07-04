@@ -2,13 +2,14 @@
 import React, { useState, useMemo } from 'react';
 import PropertyCard from '../components/PropertyCard';
 import PropertyFilters from '../components/PropertyFilters';
-import { mockProperties } from '../data/mockData';
+import { useProperties } from '../hooks/useProperties';
 import { FilterOptions, Property } from '../types';
 import { Search, TrendingUp, Users, Award, MapPin, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 const Index = () => {
+  const { properties } = useProperties();
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<FilterOptions>({
     location: '',
@@ -21,7 +22,7 @@ const Index = () => {
   });
 
   const filteredProperties = useMemo(() => {
-    let filtered = mockProperties;
+    let filtered = properties;
 
     // Search query filter
     if (searchQuery) {

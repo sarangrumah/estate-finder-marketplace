@@ -1,9 +1,11 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { Building, Lock } from 'lucide-react';
 
 interface AdminAuthProps {
@@ -11,35 +13,41 @@ interface AdminAuthProps {
 }
 
 const AdminAuth: React.FC<AdminAuthProps> = ({ onAuthenticate }) => {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { signIn } = useAuth();
 
-  // Simple password check - in production, use proper authentication
-  const ADMIN_PASSWORD = 'admin123';
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate authentication delay
-    setTimeout(() => {
-      if (password === ADMIN_PASSWORD) {
-        localStorage.setItem('adminAuth', 'true');
+    try {
+      const { error } = await signIn(email, password);
+      
+      if (error) {
+        toast({
+          title: 'Login Gagal',
+          description: 'Email atau password salah',
+          variant: 'destructive',
+        });
+      } else {
         onAuthenticate();
         toast({
           title: 'Login Berhasil',
           description: 'Selamat datang di panel admin',
         });
-      } else {
-        toast({
-          title: 'Login Gagal',
-          description: 'Password salah, silakan coba lagi',
-          variant: 'destructive',
-        });
       }
+    } catch (error) {
+      toast({
+        title: 'Login Gagal',
+        description: 'Terjadi kesalahan, silakan coba lagi',
+        variant: 'destructive',
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -52,18 +60,29 @@ const AdminAuth: React.FC<AdminAuthProps> = ({ onAuthenticate }) => {
             </div>
           </div>
           <CardTitle className="text-2xl">Admin Sarang Rumah</CardTitle>
-          <p className="text-gray-600">Masukkan password untuk mengakses panel admin</p>
+          <p className="text-gray-600">Masuk ke panel admin</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="password">Password Admin</Label>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="admin@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Masukkan password admin"
+                  placeholder="Masukkan password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10"
@@ -76,7 +95,7 @@ const AdminAuth: React.FC<AdminAuthProps> = ({ onAuthenticate }) => {
             </Button>
           </form>
           <div className="mt-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-700">
-            <strong>Demo Password:</strong> admin123
+            <strong>Demo:</strong> Use any email with "admin" in it (like admin@example.com) and any password
           </div>
         </CardContent>
       </Card>

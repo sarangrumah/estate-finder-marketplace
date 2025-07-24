@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MessageSquare, X, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,6 +23,68 @@ const ChatWidget = () => {
   const [existingMessages, setExistingMessages] = useState([]);
   const { toast } = useToast();
 
+  // Set up real-time subscription for chat updates when form is complete
+  useEffect(() => {
+    if (!isFormComplete || !senderEmail) return;
+
+    const channel = supabase
+      .channel(`chat-updates-${senderEmail}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chat_messages',
+          filter: `sender_email=eq.${senderEmail}`
+        },
+        (payload) => {
+          console.log('New chat message received:', payload);
+          const newMessage = payload.new;
+          
+          // Only add admin replies to the chat
+          if (newMessage.is_admin_reply && newMessage.message) {
+            const adminMessage = {
+              id: Date.now(),
+              text: newMessage.message,
+              sender: 'agent',
+              timestamp: new Date(newMessage.created_at)
+            };
+            setMessages(prev => [...prev, adminMessage]);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isFormComplete, senderEmail]);
+
+  const loadChatHistory = async (email: string) => {
+    try {
+      const { data: existingChats, error } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('sender_email', email)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      if (existingChats && existingChats.length > 0) {
+        const chatHistory = existingChats.map((chat, index) => ({
+          id: index + 2,
+          text: chat.message,
+          sender: chat.is_admin_reply ? 'agent' : 'user',
+          timestamp: new Date(chat.created_at)
+        }));
+        setMessages([messages[0], ...chatHistory]);
+        setExistingMessages(existingChats);
+      }
+    } catch (error) {
+      console.error('Error loading chat history:', error);
+    }
+  };
+
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -38,27 +100,7 @@ const ChatWidget = () => {
       setIsFormComplete(true);
       
       // Load existing chat history for this email
-      try {
-        const { data: existingChats, error } = await supabase
-          .from('chat_messages')
-          .select('*')
-          .eq('sender_email', senderEmail)
-          .order('created_at', { ascending: true });
-
-        if (error) throw error;
-
-        if (existingChats && existingChats.length > 0) {
-          const chatHistory = existingChats.map((chat, index) => ({
-            id: index + 1,
-            text: chat.message,
-            sender: chat.is_admin_reply ? 'agent' : 'user',
-            timestamp: new Date(chat.created_at)
-          }));
-          setMessages([messages[0], ...chatHistory]);
-        }
-      } catch (error) {
-        console.error('Error loading chat history:', error);
-      }
+      await loadChatHistory(senderEmail);
       
       const welcomeMessage = {
         id: messages.length + 1,
@@ -108,17 +150,6 @@ const ChatWidget = () => {
       } catch (whatsappError) {
         console.error('WhatsApp notification error:', whatsappError);
       }
-
-      // Simulate agent response
-      setTimeout(() => {
-        const agentResponse = {
-          id: messages.length + 2,
-          text: 'Terima kasih atas pesan Anda. Tim kami akan segera merespon. Sementara itu, Anda dapat menjelajahi properti kami atau menghubungi kami melalui halaman kontak.',
-          sender: 'agent',
-          timestamp: new Date()
-        };
-        setMessages(prev => [...prev, agentResponse]);
-      }, 1000);
 
     } catch (error) {
       console.error('Error saving chat message:', error);

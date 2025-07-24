@@ -65,7 +65,7 @@ Create `.env.local`:
 ```env
 VITE_APP_NAME=Sarang Rumah
 VITE_APP_VERSION=1.0.0
-VITE_WHATSAPP_NUMBER=+6281234567890
+VITE_WHATSAPP_NUMBER=+628158882505
 ```
 
 Visit `http://localhost:5173` untuk melihat aplikasi.

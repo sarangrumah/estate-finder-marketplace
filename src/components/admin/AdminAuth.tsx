@@ -106,9 +106,6 @@ const AdminAuth: React.FC<AdminAuthProps> = ({ onAuthenticate }) => {
               {isLoading ? 'Memverifikasi...' : 'Masuk ke Admin Panel'}
             </Button>
           </form>
-          <div className="mt-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-700">
-            <strong>Demo:</strong> Use any email with "admin" in it (like admin@example.com) and any password, or use your current email: ade.maryadi.stefanus@gmail.com
-          </div>
         </CardContent>
       </Card>
     </div>

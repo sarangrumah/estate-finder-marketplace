@@ -52,12 +52,6 @@ const Layout = () => {
               >
                 Kontak
               </Link>
-              <Link to="/admin">
-                <Button variant="outline" size="sm" className="hover:bg-blue-50 border-blue-200">
-                  <User className="h-4 w-4 mr-2" />
-                  Login Admin
-                </Button>
-              </Link>
             </nav>
 
             {/* Mobile menu button */}

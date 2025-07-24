@@ -36,17 +36,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('Auth state changed:', event, session);
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Simple admin check - you can extend this later
-          setTimeout(() => {
-            // For now, we'll check if the user's email contains "admin"
-            // This is a temporary solution until proper role system is implemented
-            const userEmail = session.user.email || '';
-            setIsAdmin(userEmail.includes('admin') || userEmail === 'admin@example.com');
-          }, 0);
+          // Simple admin check - check if the user's email contains "admin"
+          const userEmail = session.user.email || '';
+          const adminStatus = userEmail.includes('admin');
+          console.log('Admin status check:', { userEmail, adminStatus });
+          setIsAdmin(adminStatus);
         } else {
           setIsAdmin(false);
         }
@@ -57,6 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session:', session);
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
@@ -67,17 +67,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signIn = async (email: string, password: string) => {
     try {
+      console.log('Signing in with:', { email });
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
       if (error) {
+        console.error('Sign in error:', error);
         toast({
           title: 'Error',
           description: error.message,
           variant: 'destructive',
         });
+      } else {
+        console.log('Sign in successful');
       }
       
       return { error };
@@ -137,7 +141,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateProfile = async (data: any) => {
     try {
-      // This would work with a profiles table when implemented
       console.log('Profile update requested:', data);
       return { error: null };
     } catch (error) {

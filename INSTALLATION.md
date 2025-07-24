@@ -37,7 +37,7 @@ VITE_APP_VERSION=1.0.0
 VITE_API_BASE_URL=http://localhost:3000/api
 
 # WhatsApp Integration
-VITE_WHATSAPP_NUMBER=+6281234567890
+VITE_WHATSAPP_NUMBER=+628158882505
 ```
 
 ### 4. Development Server
@@ -221,7 +221,7 @@ npm run test:coverage
 
 ### Contact
 - Email: support@sarangrumah.com
-- WhatsApp: +6281234567890
+- WhatsApp: +628158882505
 - GitHub Issues: [Create issue](repository-url/issues)
 
 ## License

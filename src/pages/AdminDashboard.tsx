@@ -6,7 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useProperties } from '../hooks/useProperties';
-import { Property, Lead, Customer, Developer } from '../types';
+import { useLeads, type Lead } from '../hooks/useLeads';
+import { useCustomers, type Customer } from '../hooks/useCustomers';
+import { Property, Developer } from '../types';
 import PropertyForm from '../components/admin/PropertyForm';
 import DeveloperForm from '../components/admin/DeveloperForm';
 import ImportTemplate from '../components/admin/ImportTemplate';
@@ -49,8 +51,8 @@ const AdminDashboard = () => {
     updateDeveloper, 
     deleteDeveloper 
   } = useProperties();
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const { leads } = useLeads();
+  const { customers } = useCustomers();
   const [searchTerm, setSearchTerm] = useState('');
   
   // Form states
@@ -467,10 +469,10 @@ const AdminDashboard = () => {
                       <div className="flex items-start justify-between mb-3">
                         <div>
                           <div className="flex items-center space-x-2 mb-1">
-                            <h3 className="font-semibold text-gray-900">{lead.customerName}</h3>
+                            <h3 className="font-semibold text-gray-900">{lead.customer_name}</h3>
                             {lead.flagged && <Flag className="h-4 w-4 text-red-500" />}
                           </div>
-                          <p className="text-sm text-gray-600">{lead.propertyTitle}</p>
+                          <p className="text-sm text-gray-600">{lead.properties?.title || 'Property'}</p>
                         </div>
                         <div className="flex space-x-2">
                           <Badge className={getStatusColor(lead.status)}>
@@ -493,7 +495,7 @@ const AdminDashboard = () => {
                         </div>
                         <div className="flex items-center text-sm text-gray-600">
                           <MessageSquare className="h-4 w-4 mr-2" />
-                          {lead.communicationHistory.length} interaksi
+                          {lead.communication_history.length} interaksi
                         </div>
                       </div>
                       
@@ -501,7 +503,7 @@ const AdminDashboard = () => {
                       
                       <div className="flex justify-between items-center">
                         <span className="text-xs text-gray-500">
-                          Dibuat {new Date(lead.createdAt).toLocaleDateString('id-ID')}
+                          Dibuat {new Date(lead.created_at).toLocaleDateString('id-ID')}
                         </span>
                         <div className="flex space-x-2">
                           <Button size="sm" variant="outline">
@@ -540,7 +542,7 @@ const AdminDashboard = () => {
                           <p className="text-sm text-gray-600">{customer.location}</p>
                         </div>
                         <Badge variant="outline">
-                          {customer.preferredContactMethod}
+                          {customer.preferred_contact_method}
                         </Badge>
                       </div>
                       
@@ -556,7 +558,7 @@ const AdminDashboard = () => {
                       </div>
                       
                       <div className="mb-3">
-                        <p className="text-sm text-gray-600 mb-1">Anggaran: {formatPrice(customer.budget.min)} - {formatPrice(customer.budget.max)}</p>
+                        <p className="text-sm text-gray-600 mb-1">Anggaran: {formatPrice(customer.budget_min)} - {formatPrice(customer.budget_max)}</p>
                         <div className="flex flex-wrap gap-1">
                           {customer.interests.map((interest, index) => (
                             <Badge key={index} variant="secondary" className="text-xs">
@@ -568,7 +570,7 @@ const AdminDashboard = () => {
                       
                       <div className="flex justify-between items-center">
                         <span className="text-xs text-gray-500">
-                          Aktivitas terakhir: {new Date(customer.lastActivity).toLocaleDateString('id-ID')}
+                          Aktivitas terakhir: {new Date(customer.last_activity).toLocaleDateString('id-ID')}
                         </span>
                         <div className="flex space-x-2">
                           <Button size="sm" variant="outline">

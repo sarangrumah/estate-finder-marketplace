@@ -5,86 +5,102 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { MessageCircle, Send, Clock, User } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface ChatMessage {
   id: string;
-  customerName: string;
+  sender_name: string;
+  sender_email: string;
   message: string;
-  timestamp: string;
-  status: 'new' | 'replied' | 'closed';
-  customerEmail?: string;
-  replies?: {
-    id: string;
-    message: string;
-    timestamp: string;
-    sender: 'customer' | 'admin';
-  }[];
+  is_admin_reply: boolean;
+  admin_reply?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 const ChatManagement: React.FC = () => {
   const [chats, setChats] = useState<ChatMessage[]>([]);
   const [selectedChat, setSelectedChat] = useState<ChatMessage | null>(null);
   const [replyMessage, setReplyMessage] = useState('');
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  const fetchChats = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setChats(data || []);
+    } catch (error) {
+      console.error('Error fetching chats:', error);
+      toast({
+        title: 'Error',
+        description: 'Gagal memuat chat',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Load mock chat data
-    const mockChats: ChatMessage[] = [
-      {
-        id: '1',
-        customerName: 'John Doe',
-        customerEmail: 'john@example.com',
-        message: 'Saya tertarik dengan properti Vila Harmoni. Bisakah saya mendapat informasi lebih detail?',
-        timestamp: new Date().toISOString(),
-        status: 'new',
-        replies: []
-      },
-      {
-        id: '2',
-        customerName: 'Jane Smith',
-        customerEmail: 'jane@example.com',
-        message: 'Apakah ada unit yang tersedia di Apartemen Metro?',
-        timestamp: new Date(Date.now() - 3600000).toISOString(),
-        status: 'replied',
-        replies: [
-          {
-            id: '1',
-            message: 'Ya, masih ada beberapa unit tersedia. Saya akan kirimkan detail lengkapnya.',
-            timestamp: new Date(Date.now() - 1800000).toISOString(),
-            sender: 'admin'
-          }
-        ]
-      }
-    ];
-    setChats(mockChats);
+    fetchChats();
   }, []);
 
-  const handleReply = () => {
+  const handleReply = async () => {
     if (!selectedChat || !replyMessage.trim()) return;
 
-    const newReply = {
-      id: Date.now().toString(),
-      message: replyMessage,
-      timestamp: new Date().toISOString(),
-      sender: 'admin' as const
-    };
+    try {
+      const { error } = await supabase
+        .from('chat_messages')
+        .update({
+          admin_reply: replyMessage,
+          is_admin_reply: true,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', selectedChat.id);
 
-    const updatedChats = chats.map(chat => 
-      chat.id === selectedChat.id 
-        ? { 
-            ...chat, 
-            status: 'replied' as const,
-            replies: [...(chat.replies || []), newReply]
-          }
-        : chat
-    );
+      if (error) throw error;
 
-    setChats(updatedChats);
-    setSelectedChat({
-      ...selectedChat,
-      status: 'replied',
-      replies: [...(selectedChat.replies || []), newReply]
-    });
-    setReplyMessage('');
+      // Update local state
+      const updatedChats = chats.map(chat => 
+        chat.id === selectedChat.id 
+          ? { 
+              ...chat, 
+              admin_reply: replyMessage,
+              is_admin_reply: true,
+              updated_at: new Date().toISOString()
+            }
+          : chat
+      );
+
+      setChats(updatedChats);
+      setSelectedChat({
+        ...selectedChat,
+        admin_reply: replyMessage,
+        is_admin_reply: true,
+        updated_at: new Date().toISOString()
+      });
+      setReplyMessage('');
+
+      toast({
+        title: 'Success',
+        description: 'Balasan berhasil dikirim',
+      });
+
+    } catch (error) {
+      console.error('Error sending reply:', error);
+      toast({
+        title: 'Error',
+        description: 'Gagal mengirim balasan',
+        variant: 'destructive',
+      });
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -117,19 +133,19 @@ const ChatManagement: React.FC = () => {
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center">
                       <User className="h-4 w-4 mr-2 text-gray-500" />
-                      <span className="font-medium text-sm">{chat.customerName}</span>
+                      <span className="font-medium text-sm">{chat.sender_name}</span>
                     </div>
                     <Badge 
-                      variant={chat.status === 'new' ? 'destructive' : chat.status === 'replied' ? 'default' : 'secondary'}
+                      variant={chat.admin_reply ? 'default' : 'destructive'}
                       className="text-xs"
                     >
-                      {chat.status === 'new' ? 'Baru' : chat.status === 'replied' ? 'Dibalas' : 'Ditutup'}
+                      {chat.admin_reply ? 'Dibalas' : 'Baru'}
                     </Badge>
                   </div>
                   <p className="text-xs text-gray-600 truncate mb-1">{chat.message}</p>
                   <div className="flex items-center text-xs text-gray-500">
                     <Clock className="h-3 w-3 mr-1" />
-                    {formatDate(chat.timestamp)}
+                    {formatDate(chat.created_at)}
                   </div>
                 </div>
               ))}
@@ -148,7 +164,7 @@ const ChatManagement: React.FC = () => {
         <Card className="h-full">
           <CardHeader>
             <CardTitle>
-              {selectedChat ? `Chat dengan ${selectedChat.customerName}` : 'Pilih chat untuk membalas'}
+              {selectedChat ? `Chat dengan ${selectedChat.sender_name}` : 'Pilih chat untuk membalas'}
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col h-[500px]">
@@ -161,42 +177,32 @@ const ChatManagement: React.FC = () => {
                     <div className="bg-gray-100 rounded-lg p-3 max-w-[80%]">
                       <div className="flex items-center mb-1">
                         <User className="h-4 w-4 mr-2 text-gray-500" />
-                        <span className="font-medium text-sm">{selectedChat.customerName}</span>
+                        <span className="font-medium text-sm">{selectedChat.sender_name}</span>
                         <span className="text-xs text-gray-500 ml-2">
-                          {formatDate(selectedChat.timestamp)}
+                          {formatDate(selectedChat.created_at)}
                         </span>
                       </div>
                       <p className="text-sm">{selectedChat.message}</p>
-                      {selectedChat.customerEmail && (
-                        <p className="text-xs text-gray-500 mt-1">
-                          Email: {selectedChat.customerEmail}
-                        </p>
-                      )}
+                      <p className="text-xs text-gray-500 mt-1">
+                        Email: {selectedChat.sender_email}
+                      </p>
                     </div>
                   </div>
 
-                  {/* Replies */}
-                  {selectedChat.replies?.map((reply) => (
-                    <div key={reply.id} className={`flex ${reply.sender === 'admin' ? 'justify-end' : ''}`}>
-                      <div className={`rounded-lg p-3 max-w-[80%] ${
-                        reply.sender === 'admin' 
-                          ? 'bg-blue-500 text-white' 
-                          : 'bg-gray-100'
-                      }`}>
+                  {/* Admin Reply */}
+                  {selectedChat.admin_reply && (
+                    <div className="flex justify-end">
+                      <div className="bg-blue-500 text-white rounded-lg p-3 max-w-[80%]">
                         <div className="flex items-center mb-1">
-                          <span className="font-medium text-sm">
-                            {reply.sender === 'admin' ? 'Admin' : selectedChat.customerName}
-                          </span>
-                          <span className={`text-xs ml-2 ${
-                            reply.sender === 'admin' ? 'text-blue-100' : 'text-gray-500'
-                          }`}>
-                            {formatDate(reply.timestamp)}
+                          <span className="font-medium text-sm">Admin</span>
+                          <span className="text-xs text-blue-100 ml-2">
+                            {formatDate(selectedChat.updated_at)}
                           </span>
                         </div>
-                        <p className="text-sm">{reply.message}</p>
+                        <p className="text-sm">{selectedChat.admin_reply}</p>
                       </div>
                     </div>
-                  ))}
+                  )}
                 </div>
 
                 {/* Reply Input */}

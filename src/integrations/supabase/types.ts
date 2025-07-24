@@ -146,6 +146,39 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_messages: {
+        Row: {
+          admin_reply: string | null
+          created_at: string
+          id: string
+          is_admin_reply: boolean | null
+          message: string
+          sender_email: string
+          sender_name: string
+          updated_at: string
+        }
+        Insert: {
+          admin_reply?: string | null
+          created_at?: string
+          id?: string
+          is_admin_reply?: boolean | null
+          message: string
+          sender_email: string
+          sender_name: string
+          updated_at?: string
+        }
+        Update: {
+          admin_reply?: string | null
+          created_at?: string
+          id?: string
+          is_admin_reply?: boolean | null
+          message?: string
+          sender_email?: string
+          sender_name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       companies: {
         Row: {
           address: string
@@ -262,6 +295,102 @@ export type Database = {
           },
         ]
       }
+      customers: {
+        Row: {
+          budget_max: number | null
+          budget_min: number | null
+          created_at: string
+          email: string
+          id: string
+          interests: Json | null
+          last_activity: string | null
+          location: string | null
+          name: string
+          phone: string
+          preferred_contact_method: string
+        }
+        Insert: {
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string
+          email: string
+          id?: string
+          interests?: Json | null
+          last_activity?: string | null
+          location?: string | null
+          name: string
+          phone: string
+          preferred_contact_method?: string
+        }
+        Update: {
+          budget_max?: number | null
+          budget_min?: number | null
+          created_at?: string
+          email?: string
+          id?: string
+          interests?: Json | null
+          last_activity?: string | null
+          location?: string | null
+          name?: string
+          phone?: string
+          preferred_contact_method?: string
+        }
+        Relationships: []
+      }
+      developers: {
+        Row: {
+          address: string
+          commission_rate: number
+          contact_person: string
+          created_at: string
+          description: string | null
+          email: string
+          established_year: number
+          id: string
+          logo: string | null
+          name: string
+          phone: string
+          status: string
+          total_projects: number | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address: string
+          commission_rate?: number
+          contact_person: string
+          created_at?: string
+          description?: string | null
+          email: string
+          established_year: number
+          id?: string
+          logo?: string | null
+          name: string
+          phone: string
+          status?: string
+          total_projects?: number | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string
+          commission_rate?: number
+          contact_person?: string
+          created_at?: string
+          description?: string | null
+          email?: string
+          established_year?: number
+          id?: string
+          logo?: string | null
+          name?: string
+          phone?: string
+          status?: string
+          total_projects?: number | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       evaluation_layers: {
         Row: {
           created_at: string
@@ -307,6 +436,139 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+        }
+        Relationships: []
+      }
+      inquiries: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          message: string | null
+          name: string
+          phone: string
+          property_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          message?: string | null
+          name: string
+          phone: string
+          property_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string | null
+          name?: string
+          phone?: string
+          property_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inquiries_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          communication_history: Json | null
+          created_at: string
+          customer_name: string
+          email: string
+          flagged: boolean | null
+          id: string
+          notes: string | null
+          phone: string
+          priority: string
+          property_id: string
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          communication_history?: Json | null
+          created_at?: string
+          customer_name: string
+          email: string
+          flagged?: boolean | null
+          id?: string
+          notes?: string | null
+          phone: string
+          priority?: string
+          property_id: string
+          source: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          communication_history?: Json | null
+          created_at?: string
+          customer_name?: string
+          email?: string
+          flagged?: boolean | null
+          id?: string
+          notes?: string | null
+          phone?: string
+          priority?: string
+          property_id?: string
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      monthly_reports: {
+        Row: {
+          created_at: string
+          id: string
+          month: number
+          sales_by_developer: Json | null
+          total_commission: number | null
+          total_properties: number | null
+          total_sales: number | null
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          month: number
+          sales_by_developer?: Json | null
+          total_commission?: number | null
+          total_properties?: number | null
+          total_sales?: number | null
+          year: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          month?: number
+          sales_by_developer?: Json | null
+          total_commission?: number | null
+          total_properties?: number | null
+          total_sales?: number | null
+          year?: number
         }
         Relationships: []
       }
@@ -1029,6 +1291,161 @@ export type Database = {
           valid_until?: string
         }
         Relationships: []
+      }
+      properties: {
+        Row: {
+          area: number | null
+          available_units: number
+          bathrooms: number | null
+          bedrooms: number | null
+          brochure_url: string | null
+          created_at: string
+          description: string | null
+          developer_id: string
+          facility_images: Json | null
+          features: Json | null
+          floor_plan_images: Json | null
+          floors: number | null
+          id: string
+          images: Json | null
+          location_address: string
+          location_city: string
+          location_lat: number | null
+          location_lng: number | null
+          location_state: string
+          price: number
+          property_type: string
+          sold_units: number
+          status: string
+          title: string
+          total_units: number
+          updated_at: string
+        }
+        Insert: {
+          area?: number | null
+          available_units?: number
+          bathrooms?: number | null
+          bedrooms?: number | null
+          brochure_url?: string | null
+          created_at?: string
+          description?: string | null
+          developer_id: string
+          facility_images?: Json | null
+          features?: Json | null
+          floor_plan_images?: Json | null
+          floors?: number | null
+          id?: string
+          images?: Json | null
+          location_address: string
+          location_city: string
+          location_lat?: number | null
+          location_lng?: number | null
+          location_state: string
+          price: number
+          property_type: string
+          sold_units?: number
+          status?: string
+          title: string
+          total_units?: number
+          updated_at?: string
+        }
+        Update: {
+          area?: number | null
+          available_units?: number
+          bathrooms?: number | null
+          bedrooms?: number | null
+          brochure_url?: string | null
+          created_at?: string
+          description?: string | null
+          developer_id?: string
+          facility_images?: Json | null
+          features?: Json | null
+          floor_plan_images?: Json | null
+          floors?: number | null
+          id?: string
+          images?: Json | null
+          location_address?: string
+          location_city?: string
+          location_lat?: number | null
+          location_lng?: number | null
+          location_state?: string
+          price?: number
+          property_type?: string
+          sold_units?: number
+          status?: string
+          title?: string
+          total_units?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "properties_developer_id_fkey"
+            columns: ["developer_id"]
+            isOneToOne: false
+            referencedRelation: "developers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_sales: {
+        Row: {
+          commission_amount: number
+          commission_rate: number
+          created_at: string
+          customer_email: string
+          customer_name: string
+          developer_id: string
+          id: string
+          notes: string | null
+          payment_status: string
+          property_id: string
+          sale_date: string
+          sale_price: number
+        }
+        Insert: {
+          commission_amount: number
+          commission_rate: number
+          created_at?: string
+          customer_email: string
+          customer_name: string
+          developer_id: string
+          id?: string
+          notes?: string | null
+          payment_status?: string
+          property_id: string
+          sale_date?: string
+          sale_price: number
+        }
+        Update: {
+          commission_amount?: number
+          commission_rate?: number
+          created_at?: string
+          customer_email?: string
+          customer_name?: string
+          developer_id?: string
+          id?: string
+          notes?: string | null
+          payment_status?: string
+          property_id?: string
+          sale_date?: string
+          sale_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_sales_developer_id_fkey"
+            columns: ["developer_id"]
+            isOneToOne: false
+            referencedRelation: "developers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_sales_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       system_users: {
         Row: {

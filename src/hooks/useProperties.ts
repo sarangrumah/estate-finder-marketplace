@@ -1,5 +1,5 @@
 
-import { useSecureProperties } from './useSecureProperties';
+import { useSupabaseProperties } from './useSupabaseProperties';
 
-// Re-export the secure implementation
-export const useProperties = useSecureProperties;
+// Use Supabase for database persistence
+export const useProperties = useSupabaseProperties;

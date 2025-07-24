@@ -5,8 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { mockLeads, mockCustomers } from '../data/mockData';
-import { useSecureProperties } from '../hooks/useSecureProperties';
+import { useProperties } from '../hooks/useProperties';
 import { Property, Lead, Customer, Developer } from '../types';
 import PropertyForm from '../components/admin/PropertyForm';
 import DeveloperForm from '../components/admin/DeveloperForm';
@@ -49,9 +48,9 @@ const AdminDashboard = () => {
     addDeveloper, 
     updateDeveloper, 
     deleteDeveloper 
-  } = useSecureProperties();
-  const [leads, setLeads] = useState<Lead[]>(mockLeads);
-  const [customers, setCustomers] = useState<Customer[]>(mockCustomers);
+  } = useProperties();
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   
   // Form states

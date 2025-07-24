@@ -20,6 +20,7 @@ const ChatWidget = () => {
       timestamp: new Date()
     }
   ]);
+  const [existingThread, setExistingThread] = useState(null);
   const { toast } = useToast();
 
   const handleSendMessage = async (e: React.FormEvent) => {

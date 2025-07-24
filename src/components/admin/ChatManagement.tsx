@@ -19,12 +19,47 @@ interface ChatMessage {
   updated_at: string;
 }
 
+interface ChatThread {
+  sender_email: string;
+  sender_name: string;
+  messages: ChatMessage[];
+  latest_message: ChatMessage;
+  unread_count: number;
+}
+
 const ChatManagement: React.FC = () => {
-  const [chats, setChats] = useState<ChatMessage[]>([]);
-  const [selectedChat, setSelectedChat] = useState<ChatMessage | null>(null);
+  const [chatThreads, setChatThreads] = useState<ChatThread[]>([]);
+  const [selectedThread, setSelectedThread] = useState<ChatThread | null>(null);
   const [replyMessage, setReplyMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+
+  const groupMessagesByEmail = (messages: ChatMessage[]): ChatThread[] => {
+    const grouped = messages.reduce((acc, message) => {
+      const email = message.sender_email;
+      if (!acc[email]) {
+        acc[email] = {
+          sender_email: email,
+          sender_name: message.sender_name,
+          messages: [],
+          latest_message: message,
+          unread_count: 0
+        };
+      }
+      acc[email].messages.push(message);
+      if (new Date(message.created_at) > new Date(acc[email].latest_message.created_at)) {
+        acc[email].latest_message = message;
+      }
+      if (!message.admin_reply && !message.is_admin_reply) {
+        acc[email].unread_count++;
+      }
+      return acc;
+    }, {} as Record<string, ChatThread>);
+
+    return Object.values(grouped).sort((a, b) => 
+      new Date(b.latest_message.created_at).getTime() - new Date(a.latest_message.created_at).getTime()
+    );
+  };
 
   const fetchChats = async () => {
     try {
@@ -40,7 +75,8 @@ const ChatManagement: React.FC = () => {
       }
 
       console.log('Fetched chats:', data);
-      setChats(data || []);
+      const threads = groupMessagesByEmail(data || []);
+      setChatThreads(threads);
     } catch (error) {
       console.error('Error fetching chats:', error);
       toast({
@@ -55,48 +91,54 @@ const ChatManagement: React.FC = () => {
 
   useEffect(() => {
     fetchChats();
+
+    // Set up real-time subscription
+    const channel = supabase
+      .channel('chat-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'chat_messages'
+        },
+        (payload) => {
+          console.log('Real-time chat update:', payload);
+          fetchChats(); // Refresh the data
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleReply = async () => {
-    if (!selectedChat || !replyMessage.trim()) return;
+    if (!selectedThread || !replyMessage.trim()) return;
 
     try {
+      // Create a new admin reply message
       const { error } = await supabase
         .from('chat_messages')
-        .update({
-          admin_reply: replyMessage,
+        .insert({
+          sender_name: 'Admin',
+          sender_email: 'admin@sarangrumah.com',
+          message: replyMessage,
           is_admin_reply: true,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', selectedChat.id);
+          admin_reply: replyMessage
+        });
 
       if (error) throw error;
 
-      // Update local state
-      const updatedChats = chats.map(chat => 
-        chat.id === selectedChat.id 
-          ? { 
-              ...chat, 
-              admin_reply: replyMessage,
-              is_admin_reply: true,
-              updated_at: new Date().toISOString()
-            }
-          : chat
-      );
-
-      setChats(updatedChats);
-      setSelectedChat({
-        ...selectedChat,
-        admin_reply: replyMessage,
-        is_admin_reply: true,
-        updated_at: new Date().toISOString()
-      });
       setReplyMessage('');
 
       toast({
         title: 'Success',
         description: 'Balasan berhasil dikirim',
       });
+
+      // Data will be updated via real-time subscription
 
     } catch (error) {
       console.error('Error sending reply:', error);
@@ -112,49 +154,72 @@ const ChatManagement: React.FC = () => {
     return new Date(dateString).toLocaleString('id-ID');
   };
 
+  const sortedMessages = selectedThread 
+    ? [...selectedThread.messages].sort((a, b) => 
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      )
+    : [];
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[600px]">
-      {/* Chat List */}
+      {/* Chat Threads List */}
       <div className="lg:col-span-1">
         <Card className="h-full">
           <CardHeader>
             <CardTitle className="flex items-center">
               <MessageCircle className="h-5 w-5 mr-2" />
-              Chat Pelanggan ({chats.length})
+              Chat Threads ({chatThreads.length})
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             <div className="space-y-2 max-h-[500px] overflow-y-auto p-4">
-              {chats.map((chat) => (
+              {chatThreads.map((thread) => (
                 <div
-                  key={chat.id}
+                  key={thread.sender_email}
                   className={`p-3 rounded-lg border cursor-pointer transition-colors ${
-                    selectedChat?.id === chat.id
+                    selectedThread?.sender_email === thread.sender_email
                       ? 'bg-blue-50 border-blue-200'
                       : 'hover:bg-gray-50'
                   }`}
-                  onClick={() => setSelectedChat(chat)}
+                  onClick={() => setSelectedThread(thread)}
                 >
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center">
                       <User className="h-4 w-4 mr-2 text-gray-500" />
-                      <span className="font-medium text-sm">{chat.sender_name}</span>
+                      <span className="font-medium text-sm">{thread.sender_name}</span>
                     </div>
-                    <Badge 
-                      variant={chat.admin_reply ? 'default' : 'destructive'}
-                      className="text-xs"
-                    >
-                      {chat.admin_reply ? 'Dibalas' : 'Baru'}
-                    </Badge>
+                    <div className="flex gap-1">
+                      <Badge 
+                        variant="outline" 
+                        className="text-xs"
+                      >
+                        {thread.messages.length}
+                      </Badge>
+                      {thread.unread_count > 0 && (
+                        <Badge 
+                          variant="destructive"
+                          className="text-xs"
+                        >
+                          {thread.unread_count} baru
+                        </Badge>
+                      )}
+                    </div>
                   </div>
-                  <p className="text-xs text-gray-600 truncate mb-1">{chat.message}</p>
-                  <div className="flex items-center text-xs text-gray-500">
-                    <Clock className="h-3 w-3 mr-1" />
-                    {formatDate(chat.created_at)}
+                  <p className="text-xs text-gray-600 truncate mb-1">
+                    {thread.latest_message.message}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center text-xs text-gray-500">
+                      <Clock className="h-3 w-3 mr-1" />
+                      {formatDate(thread.latest_message.created_at)}
+                    </div>
+                    <span className="text-xs text-gray-400">
+                      {thread.sender_email}
+                    </span>
                   </div>
                 </div>
               ))}
-              {chats.length === 0 && (
+              {chatThreads.length === 0 && (
                 <div className="text-center py-8 text-gray-500">
                   Belum ada chat masuk
                 </div>
@@ -164,50 +229,47 @@ const ChatManagement: React.FC = () => {
         </Card>
       </div>
 
-      {/* Chat Detail */}
+      {/* Chat Conversation */}
       <div className="lg:col-span-2">
         <Card className="h-full">
           <CardHeader>
             <CardTitle>
-              {selectedChat ? `Chat dengan ${selectedChat.sender_name}` : 'Pilih chat untuk membalas'}
+              {selectedThread ? `Chat dengan ${selectedThread.sender_name}` : 'Pilih chat untuk membalas'}
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col h-[500px]">
-            {selectedChat ? (
+            {selectedThread ? (
               <>
                 {/* Chat Messages */}
                 <div className="flex-1 overflow-y-auto space-y-4 mb-4">
-                  {/* Original Message */}
-                  <div className="flex">
-                    <div className="bg-gray-100 rounded-lg p-3 max-w-[80%]">
-                      <div className="flex items-center mb-1">
-                        <User className="h-4 w-4 mr-2 text-gray-500" />
-                        <span className="font-medium text-sm">{selectedChat.sender_name}</span>
-                        <span className="text-xs text-gray-500 ml-2">
-                          {formatDate(selectedChat.created_at)}
-                        </span>
-                      </div>
-                      <p className="text-sm">{selectedChat.message}</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Email: {selectedChat.sender_email}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Admin Reply */}
-                  {selectedChat.admin_reply && (
-                    <div className="flex justify-end">
-                      <div className="bg-blue-500 text-white rounded-lg p-3 max-w-[80%]">
+                  {sortedMessages.map((message) => (
+                    <div key={message.id} className={`flex ${message.is_admin_reply ? 'justify-end' : ''}`}>
+                      <div className={`rounded-lg p-3 max-w-[80%] ${
+                        message.is_admin_reply 
+                          ? 'bg-blue-500 text-white' 
+                          : 'bg-gray-100'
+                      }`}>
                         <div className="flex items-center mb-1">
-                          <span className="font-medium text-sm">Admin</span>
-                          <span className="text-xs text-blue-100 ml-2">
-                            {formatDate(selectedChat.updated_at)}
+                          <span className="font-medium text-sm">
+                            {message.is_admin_reply ? 'Admin' : message.sender_name}
+                          </span>
+                          <span className={`text-xs ml-2 ${
+                            message.is_admin_reply ? 'text-blue-100' : 'text-gray-500'
+                          }`}>
+                            {formatDate(message.created_at)}
                           </span>
                         </div>
-                        <p className="text-sm">{selectedChat.admin_reply}</p>
+                        <p className="text-sm">{message.message}</p>
+                        {!message.is_admin_reply && (
+                          <p className={`text-xs mt-1 ${
+                            message.is_admin_reply ? 'text-blue-100' : 'text-gray-500'
+                          }`}>
+                            Email: {message.sender_email}
+                          </p>
+                        )}
                       </div>
                     </div>
-                  )}
+                  ))}
                 </div>
 
                 {/* Reply Input */}
@@ -230,7 +292,7 @@ const ChatManagement: React.FC = () => {
               <div className="flex-1 flex items-center justify-center text-gray-500">
                 <div className="text-center">
                   <MessageCircle className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <p>Pilih chat dari daftar untuk membalas pesan pelanggan</p>
+                  <p>Pilih thread chat untuk melihat percakapan</p>
                 </div>
               </div>
             )}

@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/hooks/useAuth';
 import { Building, Lock } from 'lucide-react';
 
 interface AdminAuthProps {
@@ -17,7 +16,6 @@ const AdminAuth: React.FC<AdminAuthProps> = ({ onAuthenticate }) => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { signIn } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,8 +25,14 @@ const AdminAuth: React.FC<AdminAuthProps> = ({ onAuthenticate }) => {
 
     try {
       // For demo purposes, allow any email with "admin" and any password
-      if (email.includes('admin') && password.length > 0) {
+      // OR allow the current user's email for testing
+      if ((email.includes('admin') || email === 'ade.maryadi.stefanus@gmail.com') && password.length > 0) {
         console.log('Admin login successful');
+        
+        // Store admin authentication status
+        localStorage.setItem('adminAuth', 'true');
+        localStorage.setItem('adminEmail', email);
+        
         onAuthenticate();
         toast({
           title: 'Login Berhasil',
@@ -38,7 +42,7 @@ const AdminAuth: React.FC<AdminAuthProps> = ({ onAuthenticate }) => {
         console.log('Admin login failed - invalid credentials');
         toast({
           title: 'Login Gagal',
-          description: 'Email harus mengandung "admin" dan password tidak boleh kosong',
+          description: 'Email harus mengandung "admin" atau gunakan email yang terdaftar',
           variant: 'destructive',
         });
       }
@@ -98,13 +102,12 @@ const AdminAuth: React.FC<AdminAuthProps> = ({ onAuthenticate }) => {
               type="submit" 
               className="w-full" 
               disabled={isLoading}
-              onClick={() => console.log('Login button clicked')}
             >
               {isLoading ? 'Memverifikasi...' : 'Masuk ke Admin Panel'}
             </Button>
           </form>
           <div className="mt-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-700">
-            <strong>Demo:</strong> Use any email with "admin" in it (like admin@example.com) and any password
+            <strong>Demo:</strong> Use any email with "admin" in it (like admin@example.com) and any password, or use your current email: ade.maryadi.stefanus@gmail.com
           </div>
         </CardContent>
       </Card>

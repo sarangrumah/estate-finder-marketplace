@@ -32,6 +32,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast();
 
+  // Check admin status from localStorage and user email
+  const checkAdminStatus = (userEmail: string) => {
+    const adminAuth = localStorage.getItem('adminAuth');
+    const adminEmail = localStorage.getItem('adminEmail');
+    
+    // Check if user is admin based on:
+    // 1. localStorage admin auth
+    // 2. Email contains "admin"
+    // 3. Specific allowed emails for testing
+    const isAdminUser = adminAuth === 'true' || 
+                       userEmail.includes('admin') || 
+                       userEmail === 'ade.maryadi.stefanus@gmail.com' ||
+                       (adminEmail && adminEmail === userEmail);
+    
+    console.log('Admin status check:', { userEmail, adminAuth, adminEmail, isAdminUser });
+    return isAdminUser;
+  };
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -41,10 +59,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Simple admin check - check if the user's email contains "admin"
           const userEmail = session.user.email || '';
-          const adminStatus = userEmail.includes('admin');
-          console.log('Admin status check:', { userEmail, adminStatus });
+          const adminStatus = checkAdminStatus(userEmail);
           setIsAdmin(adminStatus);
         } else {
           setIsAdmin(false);
@@ -59,6 +75,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('Initial session:', session);
       setSession(session);
       setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        const userEmail = session.user.email || '';
+        const adminStatus = checkAdminStatus(userEmail);
+        setIsAdmin(adminStatus);
+      }
+      
       setIsLoading(false);
     });
 
@@ -126,6 +149,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
+      // Clear admin auth when signing out
+      localStorage.removeItem('adminAuth');
+      localStorage.removeItem('adminEmail');
+      
       const { error } = await supabase.auth.signOut();
       if (error) {
         toast({

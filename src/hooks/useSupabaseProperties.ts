@@ -297,6 +297,8 @@ export const useSupabaseProperties = () => {
 
   const addDeveloper = async (developerData: Omit<Developer, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
+      console.log('Adding developer:', developerData);
+      console.log('Current user:', supabase.auth.getUser());
       const { error } = await supabase
         .from('developers')
         .insert({

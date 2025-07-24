@@ -24,7 +24,6 @@ const ChatWidget = () => {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim()) return;
 
     if (!isFormComplete) {
       if (!senderName.trim() || !senderEmail.trim()) {
@@ -46,6 +45,8 @@ const ChatWidget = () => {
       setMessages(prev => [...prev, welcomeMessage]);
       return;
     }
+
+    if (!message.trim()) return;
 
     const newMessage = {
       id: messages.length + 1,

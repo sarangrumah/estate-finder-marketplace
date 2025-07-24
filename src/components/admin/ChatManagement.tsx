@@ -28,13 +28,18 @@ const ChatManagement: React.FC = () => {
 
   const fetchChats = async () => {
     try {
+      console.log('Fetching chat messages...');
       const { data, error } = await supabase
         .from('chat_messages')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
+      console.log('Fetched chats:', data);
       setChats(data || []);
     } catch (error) {
       console.error('Error fetching chats:', error);

@@ -13,7 +13,7 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<FilterOptions>({
     location: '',
-    priceRange: { min: 0, max: 20000000000 },
+    priceRange: { min: 0, max: 2000000 },
     propertyType: [],
     bedrooms: [],
     bathrooms: [],
@@ -22,6 +22,12 @@ const Index = () => {
   });
 
   const filteredProperties = useMemo(() => {
+    console.log('Filtering properties:', {
+      totalProperties: properties.length,
+      filters,
+      searchQuery
+    });
+
     let filtered = properties;
 
     // Search query filter
@@ -84,8 +90,13 @@ const Index = () => {
       });
     }
 
+    console.log('Filtered properties:', {
+      filteredCount: filtered.length,
+      filtered: filtered.map(p => ({ id: p.id, title: p.title, price: p.price, type: p.type }))
+    });
+
     return filtered;
-  }, [searchQuery, filters]);
+  }, [properties, searchQuery, filters]);
 
   const clearFilters = () => {
     setFilters({

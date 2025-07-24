@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,39 +12,54 @@ interface AdminAuthProps {
 }
 
 const AdminAuth: React.FC<AdminAuthProps> = ({ onAuthenticate }) => {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
-  // Simple password check - in production, use proper authentication
-  const ADMIN_PASSWORD = 'admin123';
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Admin login attempt:', { email, password });
+    
     setIsLoading(true);
 
-    // Simulate authentication delay
-    setTimeout(() => {
-      if (password === ADMIN_PASSWORD) {
+    try {
+      // For demo purposes, allow any email with "admin" and any password
+      // OR allow the current user's email for testing
+      if ((email.includes('admin') || email === 'ade.maryadi.stefanus@gmail.com') && password.length > 0) {
+        console.log('Admin login successful');
+        
+        // Store admin authentication status
         localStorage.setItem('adminAuth', 'true');
+        localStorage.setItem('adminEmail', email);
+        
         onAuthenticate();
         toast({
           title: 'Login Berhasil',
           description: 'Selamat datang di panel admin',
         });
       } else {
+        console.log('Admin login failed - invalid credentials');
         toast({
           title: 'Login Gagal',
-          description: 'Password salah, silakan coba lagi',
+          description: 'Email harus mengandung "admin" atau gunakan email yang terdaftar',
           variant: 'destructive',
         });
       }
+    } catch (error) {
+      console.error('Admin login error:', error);
+      toast({
+        title: 'Login Gagal',
+        description: 'Terjadi kesalahan, silakan coba lagi',
+        variant: 'destructive',
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
@@ -52,18 +68,29 @@ const AdminAuth: React.FC<AdminAuthProps> = ({ onAuthenticate }) => {
             </div>
           </div>
           <CardTitle className="text-2xl">Admin Sarang Rumah</CardTitle>
-          <p className="text-gray-600">Masukkan password untuk mengakses panel admin</p>
+          <p className="text-gray-600">Masuk ke panel admin</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="password">Password Admin</Label>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="admin@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
               <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Masukkan password admin"
+                  placeholder="Masukkan password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10"
@@ -71,13 +98,14 @@ const AdminAuth: React.FC<AdminAuthProps> = ({ onAuthenticate }) => {
                 />
               </div>
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button 
+              type="submit" 
+              className="w-full" 
+              disabled={isLoading}
+            >
               {isLoading ? 'Memverifikasi...' : 'Masuk ke Admin Panel'}
             </Button>
           </form>
-          <div className="mt-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-700">
-            <strong>Demo Password:</strong> admin123
-          </div>
         </CardContent>
       </Card>
     </div>

@@ -1,23 +1,117 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MessageSquare, X, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const ChatWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState('');
+  const [senderName, setSenderName] = useState('');
+  const [senderEmail, setSenderEmail] = useState('');
+  const [isFormComplete, setIsFormComplete] = useState(false);
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: 'Halo! Selamat datang di Sarang Rumah. Ada yang bisa saya bantu?',
+      text: 'Halo! Selamat datang di Sarang Rumah. Silakan isi nama dan email Anda untuk memulai chat.',
       sender: 'agent',
       timestamp: new Date()
     }
   ]);
+  const [existingMessages, setExistingMessages] = useState([]);
+  const { toast } = useToast();
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  // Set up real-time subscription for chat updates when form is complete
+  useEffect(() => {
+    if (!isFormComplete || !senderEmail) return;
+
+    const channel = supabase
+      .channel(`chat-updates-${senderEmail}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'chat_messages',
+          filter: `sender_email=eq.${senderEmail}`
+        },
+        (payload) => {
+          console.log('New chat message received:', payload);
+          const newMessage = payload.new;
+          
+          // Only add admin replies to the chat
+          if (newMessage.is_admin_reply && newMessage.message) {
+            const adminMessage = {
+              id: Date.now(),
+              text: newMessage.message,
+              sender: 'agent',
+              timestamp: new Date(newMessage.created_at)
+            };
+            setMessages(prev => [...prev, adminMessage]);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [isFormComplete, senderEmail]);
+
+  const loadChatHistory = async (email: string) => {
+    try {
+      const { data: existingChats, error } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .eq('sender_email', email)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      if (existingChats && existingChats.length > 0) {
+        const chatHistory = existingChats.map((chat, index) => ({
+          id: index + 2,
+          text: chat.message,
+          sender: chat.is_admin_reply ? 'agent' : 'user',
+          timestamp: new Date(chat.created_at)
+        }));
+        setMessages([messages[0], ...chatHistory]);
+        setExistingMessages(existingChats);
+      }
+    } catch (error) {
+      console.error('Error loading chat history:', error);
+    }
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!isFormComplete) {
+      if (!senderName.trim() || !senderEmail.trim()) {
+        toast({
+          title: 'Error',
+          description: 'Mohon isi nama dan email terlebih dahulu',
+          variant: 'destructive',
+        });
+        return;
+      }
+      setIsFormComplete(true);
+      
+      // Load existing chat history for this email
+      await loadChatHistory(senderEmail);
+      
+      const welcomeMessage = {
+        id: messages.length + 1,
+        text: `Terima kasih ${senderName}! ${existingMessages.length > 0 ? 'Berikut adalah riwayat chat Anda.' : 'Sekarang Anda dapat mengirim pesan dan kami akan segera merespon.'}`,
+        sender: 'agent',
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, welcomeMessage]);
+      return;
+    }
+
     if (!message.trim()) return;
 
     const newMessage = {
@@ -28,18 +122,43 @@ const ChatWidget = () => {
     };
 
     setMessages([...messages, newMessage]);
-    setMessage('');
 
-    // Simulate agent response
-    setTimeout(() => {
-      const agentResponse = {
-        id: messages.length + 2,
-        text: 'Terima kasih atas pesan Anda. Tim kami akan segera merespon. Sementara itu, Anda dapat menjelajahi properti kami atau menghubungi kami melalui halaman kontak.',
-        sender: 'agent',
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, agentResponse]);
-    }, 1000);
+    // Save message to database
+    try {
+      const { error } = await supabase
+        .from('chat_messages')
+        .insert({
+          sender_name: senderName,
+          sender_email: senderEmail,
+          message: message,
+          is_admin_reply: false
+        });
+
+      if (error) throw error;
+
+      setMessage('');
+
+      // Check admin status and send WhatsApp if needed
+      try {
+        await supabase.functions.invoke('send-whatsapp-notification', {
+          body: {
+            sender_name: senderName,
+            sender_email: senderEmail,
+            message: message
+          }
+        });
+      } catch (whatsappError) {
+        console.error('WhatsApp notification error:', whatsappError);
+      }
+
+    } catch (error) {
+      console.error('Error saving chat message:', error);
+      toast({
+        title: 'Error',
+        description: 'Gagal mengirim pesan. Silakan coba lagi.',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -90,17 +209,38 @@ const ChatWidget = () => {
 
               {/* Message Input */}
               <div className="border-t p-4">
-                <form onSubmit={handleSendMessage} className="flex gap-2">
-                  <Input
-                    value={message}
-                    onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Ketik pesan Anda..."
-                    className="flex-1"
-                  />
-                  <Button type="submit" size="sm">
-                    <Send className="h-4 w-4" />
-                  </Button>
-                </form>
+                {!isFormComplete ? (
+                  <div className="space-y-3">
+                    <Input
+                      value={senderName}
+                      onChange={(e) => setSenderName(e.target.value)}
+                      placeholder="Nama lengkap"
+                      className="w-full"
+                    />
+                    <Input
+                      value={senderEmail}
+                      onChange={(e) => setSenderEmail(e.target.value)}
+                      placeholder="Email"
+                      type="email"
+                      className="w-full"
+                    />
+                    <Button onClick={handleSendMessage} className="w-full">
+                      Mulai Chat
+                    </Button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSendMessage} className="flex gap-2">
+                    <Input
+                      value={message}
+                      onChange={(e) => setMessage(e.target.value)}
+                      placeholder="Ketik pesan Anda..."
+                      className="flex-1"
+                    />
+                    <Button type="submit" size="sm">
+                      <Send className="h-4 w-4" />
+                    </Button>
+                  </form>
+                )}
               </div>
             </CardContent>
           </Card>

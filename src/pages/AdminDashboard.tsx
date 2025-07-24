@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,15 +5,17 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { mockLeads, mockCustomers } from '../data/mockData';
 import { useProperties } from '../hooks/useProperties';
-import { Property, Lead, Customer, Developer } from '../types';
+import { useLeads, type Lead } from '../hooks/useLeads';
+import { useCustomers, type Customer } from '../hooks/useCustomers';
+import { Property, Developer } from '../types';
 import PropertyForm from '../components/admin/PropertyForm';
 import DeveloperForm from '../components/admin/DeveloperForm';
 import ImportTemplate from '../components/admin/ImportTemplate';
 import ChatManagement from '../components/admin/ChatManagement';
 import AdminAuth from '../components/admin/AdminAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 import { 
   Building, 
   Users, 
@@ -39,6 +40,7 @@ import { Link } from 'react-router-dom';
 
 const AdminDashboard = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { isAdmin, user } = useAuth();
   const { 
     properties, 
     developers, 
@@ -49,8 +51,8 @@ const AdminDashboard = () => {
     updateDeveloper, 
     deleteDeveloper 
   } = useProperties();
-  const [leads, setLeads] = useState<Lead[]>(mockLeads);
-  const [customers, setCustomers] = useState<Customer[]>(mockCustomers);
+  const { leads } = useLeads();
+  const { customers } = useCustomers();
   const [searchTerm, setSearchTerm] = useState('');
   
   // Form states
@@ -62,19 +64,28 @@ const AdminDashboard = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const authStatus = localStorage.getItem('adminAuth');
-    if (authStatus === 'true') {
+    // Check localStorage for admin auth or if user is admin
+    const adminAuth = localStorage.getItem('adminAuth');
+    console.log('AdminDashboard - checking auth:', { adminAuth, isAdmin, user });
+    
+    if (adminAuth === 'true' || isAdmin) {
       setIsAuthenticated(true);
     }
-  }, []);
+  }, [isAdmin, user]);
 
   const handleAuthenticate = () => {
+    console.log('Admin authenticated');
     setIsAuthenticated(true);
   };
 
   const handleLogout = () => {
     localStorage.removeItem('adminAuth');
+    localStorage.removeItem('adminEmail');
     setIsAuthenticated(false);
+    toast({
+      title: 'Logout Berhasil',
+      description: 'Anda telah keluar dari panel admin',
+    });
   };
 
   const formatPrice = (price: number) => {
@@ -106,7 +117,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // CRUD Operations
   const handleSaveProperty = (propertyData: any) => {
     if (editingProperty) {
       updateProperty(editingProperty.id, propertyData);
@@ -143,21 +153,18 @@ const AdminDashboard = () => {
     });
   };
 
-  // Statistics
   const totalProperties = properties.length;
   const availableProperties = properties.filter(p => p.status === 'available').length;
   const totalLeads = leads.length;
   const newLeads = leads.filter(l => l.status === 'new').length;
   const flaggedLeads = leads.filter(l => l.flagged).length;
 
-  // Check authentication first
   if (!isAuthenticated) {
     return <AdminAuth onAuthenticate={handleAuthenticate} />;
   }
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
@@ -176,7 +183,7 @@ const AdminDashboard = () => {
                   <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm font-semibold">A</span>
                   </div>
-                  <span className="text-sm text-gray-700">Pengguna Admin</span>
+                  <span className="text-sm text-gray-700">Admin User</span>
                 </div>
               </div>
           </div>
@@ -184,7 +191,6 @@ const AdminDashboard = () => {
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Dashboard Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardContent className="p-6">
@@ -235,7 +241,6 @@ const AdminDashboard = () => {
           </Card>
         </div>
 
-        {/* Main Content Tabs */}
         <Tabs defaultValue="properties" className="space-y-6">
           <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="properties">Properti</TabsTrigger>
@@ -246,7 +251,6 @@ const AdminDashboard = () => {
             <TabsTrigger value="chat">Chat</TabsTrigger>
           </TabsList>
 
-          {/* Properties Tab */}
           <TabsContent value="properties">
             <Card>
               <CardHeader>
@@ -340,7 +344,6 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
-          {/* Developers Tab */}
           <TabsContent value="developers">
             <Card>
               <CardHeader>
@@ -441,7 +444,6 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
-          {/* Leads Tab */}
           <TabsContent value="leads">
             <Card>
               <CardHeader>
@@ -467,10 +469,10 @@ const AdminDashboard = () => {
                       <div className="flex items-start justify-between mb-3">
                         <div>
                           <div className="flex items-center space-x-2 mb-1">
-                            <h3 className="font-semibold text-gray-900">{lead.customerName}</h3>
+                            <h3 className="font-semibold text-gray-900">{lead.customer_name}</h3>
                             {lead.flagged && <Flag className="h-4 w-4 text-red-500" />}
                           </div>
-                          <p className="text-sm text-gray-600">{lead.propertyTitle}</p>
+                          <p className="text-sm text-gray-600">{lead.properties?.title || 'Property'}</p>
                         </div>
                         <div className="flex space-x-2">
                           <Badge className={getStatusColor(lead.status)}>
@@ -493,7 +495,7 @@ const AdminDashboard = () => {
                         </div>
                         <div className="flex items-center text-sm text-gray-600">
                           <MessageSquare className="h-4 w-4 mr-2" />
-                          {lead.communicationHistory.length} interaksi
+                          {lead.communication_history.length} interaksi
                         </div>
                       </div>
                       
@@ -501,7 +503,7 @@ const AdminDashboard = () => {
                       
                       <div className="flex justify-between items-center">
                         <span className="text-xs text-gray-500">
-                          Dibuat {new Date(lead.createdAt).toLocaleDateString('id-ID')}
+                          Dibuat {new Date(lead.created_at).toLocaleDateString('id-ID')}
                         </span>
                         <div className="flex space-x-2">
                           <Button size="sm" variant="outline">
@@ -525,7 +527,6 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
-          {/* Customers Tab */}
           <TabsContent value="customers">
             <Card>
               <CardHeader>
@@ -541,7 +542,7 @@ const AdminDashboard = () => {
                           <p className="text-sm text-gray-600">{customer.location}</p>
                         </div>
                         <Badge variant="outline">
-                          {customer.preferredContactMethod}
+                          {customer.preferred_contact_method}
                         </Badge>
                       </div>
                       
@@ -557,7 +558,7 @@ const AdminDashboard = () => {
                       </div>
                       
                       <div className="mb-3">
-                        <p className="text-sm text-gray-600 mb-1">Anggaran: {formatPrice(customer.budget.min)} - {formatPrice(customer.budget.max)}</p>
+                        <p className="text-sm text-gray-600 mb-1">Anggaran: {formatPrice(customer.budget_min)} - {formatPrice(customer.budget_max)}</p>
                         <div className="flex flex-wrap gap-1">
                           {customer.interests.map((interest, index) => (
                             <Badge key={index} variant="secondary" className="text-xs">
@@ -569,7 +570,7 @@ const AdminDashboard = () => {
                       
                       <div className="flex justify-between items-center">
                         <span className="text-xs text-gray-500">
-                          Aktivitas terakhir: {new Date(customer.lastActivity).toLocaleDateString('id-ID')}
+                          Aktivitas terakhir: {new Date(customer.last_activity).toLocaleDateString('id-ID')}
                         </span>
                         <div className="flex space-x-2">
                           <Button size="sm" variant="outline">
@@ -589,7 +590,6 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
-          {/* Import Tab */}
           <TabsContent value="import" className="space-y-6">
             <Card>
               <CardHeader>
@@ -604,14 +604,12 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
-          {/* Chat Tab */}
           <TabsContent value="chat" className="space-y-6">
             <ChatManagement />
           </TabsContent>
         </Tabs>
       </div>
 
-      {/* Forms */}
       <PropertyForm
         isOpen={showPropertyForm}
         onClose={() => {

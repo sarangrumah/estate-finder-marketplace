@@ -5,7 +5,7 @@ import { MessageCircle } from 'lucide-react';
 const WhatsAppWidget = () => {
   const handleWhatsAppClick = () => {
     // Replace with your actual WhatsApp admin number
-    const phoneNumber = '6281234567890'; // Format: country code + number without +
+    const phoneNumber = '628158882505'; // Format: country code + number without +
     const message = encodeURIComponent('Halo, saya ingin bertanya tentang properti yang tersedia.');
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
     window.open(whatsappUrl, '_blank');

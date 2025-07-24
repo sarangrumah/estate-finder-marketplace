@@ -118,12 +118,12 @@ const ChatManagement: React.FC = () => {
     if (!selectedThread || !replyMessage.trim()) return;
 
     try {
-      // Create a new admin reply message
+      // Create a new admin reply message that will be grouped with the thread
       const { error } = await supabase
         .from('chat_messages')
         .insert({
-          sender_name: 'Admin',
-          sender_email: 'admin@sarangrumah.com',
+          sender_name: selectedThread.sender_name,
+          sender_email: selectedThread.sender_email,
           message: replyMessage,
           is_admin_reply: true,
           admin_reply: replyMessage

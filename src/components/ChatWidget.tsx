@@ -20,7 +20,7 @@ const ChatWidget = () => {
       timestamp: new Date()
     }
   ]);
-  const [existingThread, setExistingThread] = useState(null);
+  const [existingMessages, setExistingMessages] = useState([]);
   const { toast } = useToast();
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -37,9 +37,32 @@ const ChatWidget = () => {
       }
       setIsFormComplete(true);
       
+      // Load existing chat history for this email
+      try {
+        const { data: existingChats, error } = await supabase
+          .from('chat_messages')
+          .select('*')
+          .eq('sender_email', senderEmail)
+          .order('created_at', { ascending: true });
+
+        if (error) throw error;
+
+        if (existingChats && existingChats.length > 0) {
+          const chatHistory = existingChats.map((chat, index) => ({
+            id: index + 1,
+            text: chat.message,
+            sender: chat.is_admin_reply ? 'agent' : 'user',
+            timestamp: new Date(chat.created_at)
+          }));
+          setMessages([messages[0], ...chatHistory]);
+        }
+      } catch (error) {
+        console.error('Error loading chat history:', error);
+      }
+      
       const welcomeMessage = {
         id: messages.length + 1,
-        text: `Terima kasih ${senderName}! Sekarang Anda dapat mengirim pesan dan kami akan segera merespon.`,
+        text: `Terima kasih ${senderName}! ${existingMessages.length > 0 ? 'Berikut adalah riwayat chat Anda.' : 'Sekarang Anda dapat mengirim pesan dan kami akan segera merespon.'}`,
         sender: 'agent',
         timestamp: new Date()
       };
@@ -72,6 +95,19 @@ const ChatWidget = () => {
       if (error) throw error;
 
       setMessage('');
+
+      // Check admin status and send WhatsApp if needed
+      try {
+        await supabase.functions.invoke('send-whatsapp-notification', {
+          body: {
+            sender_name: senderName,
+            sender_email: senderEmail,
+            message: message
+          }
+        });
+      } catch (whatsappError) {
+        console.error('WhatsApp notification error:', whatsappError);
+      }
 
       // Simulate agent response
       setTimeout(() => {

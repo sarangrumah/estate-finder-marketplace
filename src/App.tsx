@@ -33,7 +33,7 @@ const App = () => (
               <Route path="property/:id" element={<PropertyDetails />} />
             </Route>
             <Route 
-              path="admin" 
+              path="/admin" 
               element={
                 <ProtectedRoute requireAdmin>
                   <AdminDashboard />

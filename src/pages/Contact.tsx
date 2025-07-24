@@ -167,8 +167,7 @@ const Contact = () => {
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900">Telepon</h3>
-                      <p className="text-gray-600">(021) 123-4567</p>
-                      <p className="text-gray-600">+62 812-3456-7890</p>
+                      <p className="text-gray-600">+62 815-888-2505</p>
                     </div>
                   </div>
                 </CardContent>

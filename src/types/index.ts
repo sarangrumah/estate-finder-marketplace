@@ -1,3 +1,4 @@
+
 export interface Property {
   id: string;
   title: string;
@@ -13,16 +14,16 @@ export interface Property {
     };
   };
   type: 'apartment' | 'house' | 'condo' | 'townhouse';
-  bedrooms: number;
-  bathrooms: number;
-  floors: number;
-  area: number; // in square meters
+  bedrooms?: number;
+  bathrooms?: number;
+  floors?: number;
+  area?: number; // in square meters
   images: string[];
   floorPlanImages?: string[];
   facilityImages?: string[];
   brochureUrl?: string;
   developerId: string; // Reference to Developer ID
-  developer: string; // Developer name for display
+  developer?: string; // Developer name for display
   features: string[];
   status: 'available' | 'sold' | 'pending';
   totalUnits: number;
@@ -77,7 +78,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'agent';
+  role: 'admin' | 'agent' | 'user';
   avatar?: string;
 }
 
@@ -148,4 +149,38 @@ export interface MonthlyReport {
     commissionAmount: number;
   }[];
   createdAt: string;
+}
+
+export interface Profile {
+  id: string;
+  user_id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  role: 'admin' | 'agent' | 'user';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Inquiry {
+  id: string;
+  property_id: string;
+  name: string;
+  email: string;
+  phone: string;
+  message?: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  sender_name: string;
+  sender_email: string;
+  message: string;
+  is_admin_reply: boolean;
+  admin_reply?: string;
+  created_at: string;
+  updated_at: string;
 }

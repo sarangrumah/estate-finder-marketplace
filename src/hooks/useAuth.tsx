@@ -40,20 +40,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Check if user is admin
+          // Check if user is admin - handle gracefully if profiles table doesn't exist yet
           setTimeout(async () => {
             try {
               const { data, error } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('user_id', session.user.id)
-                .single();
+                .rpc('is_admin');
               
               if (!error && data) {
-                setIsAdmin(data.role === 'admin');
+                setIsAdmin(data);
+              } else {
+                // Fallback: check if profiles table exists and query it
+                const { data: profileData, error: profileError } = await supabase
+                  .from('profiles')
+                  .select('role')
+                  .eq('user_id', session.user.id)
+                  .single();
+                
+                if (!profileError && profileData) {
+                  setIsAdmin(profileData.role === 'admin');
+                }
               }
             } catch (error) {
               console.error('Error checking admin status:', error);
+              setIsAdmin(false);
             }
           }, 0);
         } else {

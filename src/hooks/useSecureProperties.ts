@@ -1,53 +1,13 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-export interface SecureProperty {
-  id: string;
-  title: string;
-  description: string;
-  price: number;
-  location: {
-    address: string;
-    city: string;
-    state: string;
-    coordinates: {
-      lat: number;
-      lng: number;
-    };
-  };
-  type: string;
-  status: 'available' | 'sold' | 'pending';
-  images: string[];
-  features: string[];
-  specifications: any;
-  total_units: number;
-  available_units: number;
-  sold_units: number;
-  developer_id: string;
-  brochure_url?: string;
-  created_at: string;
-  updated_at: string;
-}
+// Using the existing types from the project
+import { Property, Developer } from '@/types';
 
-export interface SecureDeveloper {
-  id: string;
-  name: string;
-  description: string;
-  contact_person: string;
-  email: string;
-  phone: string;
-  address: string;
-  website?: string;
-  logo?: string;
-  established_year: number;
-  total_projects: number;
-  commission_rate: number;
-  status: string;
-  created_at: string;
-  updated_at: string;
-}
+export interface SecureProperty extends Property {}
+
+export interface SecureDeveloper extends Developer {}
 
 export const useSecureProperties = () => {
   const [properties, setProperties] = useState<SecureProperty[]>([]);
@@ -55,56 +15,65 @@ export const useSecureProperties = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  // Load properties from Supabase
-  const loadProperties = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('properties')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        throw error;
-      }
-
-      setProperties(data || []);
-    } catch (error) {
-      console.error('Error loading properties:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load properties',
-        variant: 'destructive',
-      });
+  // Mock data for now - this will be replaced with actual Supabase calls once the schema is ready
+  const mockProperties: SecureProperty[] = [
+    {
+      id: '1',
+      title: 'Modern Apartment Complex',
+      description: 'Luxury apartment in the heart of the city',
+      price: 500000,
+      location: {
+        address: '123 Main Street',
+        city: 'Jakarta',
+        state: 'DKI Jakarta',
+        coordinates: { lat: -6.2088, lng: 106.8456 }
+      },
+      type: 'apartment',
+      bedrooms: 2,
+      bathrooms: 2,
+      area: 80,
+      images: ['/placeholder.svg'],
+      features: ['Swimming Pool', 'Gym', 'Parking'],
+      status: 'available',
+      totalUnits: 50,
+      availableUnits: 45,
+      soldUnits: 5,
+      developerId: '1',
+      developer: 'ABC Development',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     }
-  };
+  ];
 
-  // Load developers from Supabase
-  const loadDevelopers = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('developers')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        throw error;
-      }
-
-      setDevelopers(data || []);
-    } catch (error) {
-      console.error('Error loading developers:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load developers',
-        variant: 'destructive',
-      });
+  const mockDevelopers: SecureDeveloper[] = [
+    {
+      id: '1',
+      name: 'ABC Development',
+      description: 'Leading property developer in Indonesia',
+      contactPerson: 'John Doe',
+      email: 'contact@abcdev.com',
+      phone: '+62123456789',
+      address: '456 Business Street, Jakarta',
+      establishedYear: 2000,
+      totalProjects: 25,
+      commissionRate: 2.5,
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     }
-  };
+  ];
 
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      await Promise.all([loadProperties(), loadDevelopers()]);
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // For now, use mock data
+      setProperties(mockProperties);
+      setDevelopers(mockDevelopers);
+      
       setLoading(false);
     };
 
@@ -112,25 +81,23 @@ export const useSecureProperties = () => {
   }, []);
 
   // Add property
-  const addProperty = async (propertyData: Omit<SecureProperty, 'id' | 'created_at' | 'updated_at'>) => {
+  const addProperty = async (propertyData: Omit<SecureProperty, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
-      const { data, error } = await supabase
-        .from('properties')
-        .insert([propertyData])
-        .select()
-        .single();
+      const newProperty: SecureProperty = {
+        ...propertyData,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
 
-      if (error) {
-        throw error;
-      }
-
-      setProperties(prev => [data, ...prev]);
+      setProperties(prev => [newProperty, ...prev]);
+      
       toast({
         title: 'Success',
         description: 'Property added successfully',
       });
       
-      return data;
+      return newProperty;
     } catch (error) {
       console.error('Error adding property:', error);
       toast({
@@ -145,17 +112,8 @@ export const useSecureProperties = () => {
   // Update property
   const updateProperty = async (id: string, propertyData: Partial<SecureProperty>) => {
     try {
-      const { error } = await supabase
-        .from('properties')
-        .update(propertyData)
-        .eq('id', id);
-
-      if (error) {
-        throw error;
-      }
-
       setProperties(prev => prev.map(p => 
-        p.id === id ? { ...p, ...propertyData } : p
+        p.id === id ? { ...p, ...propertyData, updatedAt: new Date().toISOString() } : p
       ));
       
       toast({
@@ -176,15 +134,6 @@ export const useSecureProperties = () => {
   // Delete property
   const deleteProperty = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('properties')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        throw error;
-      }
-
       setProperties(prev => prev.filter(p => p.id !== id));
       
       toast({
@@ -203,25 +152,23 @@ export const useSecureProperties = () => {
   };
 
   // Add developer
-  const addDeveloper = async (developerData: Omit<SecureDeveloper, 'id' | 'created_at' | 'updated_at'>) => {
+  const addDeveloper = async (developerData: Omit<SecureDeveloper, 'id' | 'createdAt' | 'updatedAt'>) => {
     try {
-      const { data, error } = await supabase
-        .from('developers')
-        .insert([developerData])
-        .select()
-        .single();
+      const newDeveloper: SecureDeveloper = {
+        ...developerData,
+        id: Date.now().toString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
 
-      if (error) {
-        throw error;
-      }
-
-      setDevelopers(prev => [data, ...prev]);
+      setDevelopers(prev => [newDeveloper, ...prev]);
+      
       toast({
         title: 'Success',
         description: 'Developer added successfully',
       });
       
-      return data;
+      return newDeveloper;
     } catch (error) {
       console.error('Error adding developer:', error);
       toast({
@@ -236,17 +183,8 @@ export const useSecureProperties = () => {
   // Update developer
   const updateDeveloper = async (id: string, developerData: Partial<SecureDeveloper>) => {
     try {
-      const { error } = await supabase
-        .from('developers')
-        .update(developerData)
-        .eq('id', id);
-
-      if (error) {
-        throw error;
-      }
-
       setDevelopers(prev => prev.map(d => 
-        d.id === id ? { ...d, ...developerData } : d
+        d.id === id ? { ...d, ...developerData, updatedAt: new Date().toISOString() } : d
       ));
       
       toast({
@@ -267,15 +205,6 @@ export const useSecureProperties = () => {
   // Delete developer
   const deleteDeveloper = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('developers')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        throw error;
-      }
-
       setDevelopers(prev => prev.filter(d => d.id !== id));
       
       toast({
@@ -303,6 +232,14 @@ export const useSecureProperties = () => {
     return developers.find(d => d.id === id);
   };
 
+  const refreshData = async () => {
+    setLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 500));
+    setProperties(mockProperties);
+    setDevelopers(mockDevelopers);
+    setLoading(false);
+  };
+
   return {
     properties,
     developers,
@@ -315,6 +252,6 @@ export const useSecureProperties = () => {
     deleteDeveloper,
     getPropertyById,
     getDeveloperById,
-    refreshData: () => Promise.all([loadProperties(), loadDevelopers()]),
+    refreshData,
   };
 };

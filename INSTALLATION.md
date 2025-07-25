@@ -105,9 +105,7 @@ src/
 
 ## Admin Access
 Akses admin dashboard di `/admin` route.
-Default credentials untuk development:
-- Username: admin@sarangrumah.com
-- Password: admin123
+
 
 ## CSV Import Format
 

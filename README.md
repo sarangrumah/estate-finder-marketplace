@@ -73,8 +73,7 @@ Visit `http://localhost:5173` untuk melihat aplikasi.
 ## 📖 Documentation
 
 ### Admin Access
-- URL: `/admin`
-- Default: admin@sarangrumah.com / admin123
+
 
 ### CSV Import Templates
 Platform menyediakan template CSV untuk import data:
